@@ -415,11 +415,13 @@ class _DashboardViewState extends State<DashboardView> {
           // Hourly forecast
           if (w.hourly.isNotEmpty) ...[
             Container(
+              width: double.infinity,
               padding: const EdgeInsets.only(top: 16),
               decoration: const BoxDecoration(
                 border: Border(top: BorderSide(color: Colors.white10)),
               ),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -519,10 +521,10 @@ class _DashboardViewState extends State<DashboardView> {
         children: [
           Row(
             children: [
-              const Icon(Icons.schedule, color: PlumaColors.primary, size: 24),
+              const Icon(Icons.schedule, color: PlumaColors.primary, size: 20),
               const SizedBox(width: 8),
               const Text(
-                'zegar cyfrowy',
+                'zegar',
                 style: TextStyle(
                   color: PlumaColors.onSurfaceVariant,
                   fontSize: 12,
@@ -531,60 +533,54 @@ class _DashboardViewState extends State<DashboardView> {
               ),
             ],
           ),
-          const SizedBox(height: 32),
-          Column(
+          const SizedBox(height: 16),
+          Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.baseline,
-                textBaseline: TextBaseline.alphabetic,
-                children: [
-                  Text(
-                    '$hours:$minutes',
-                    style: const TextStyle(
-                      color: PlumaColors.onSurface,
-                      fontSize: 56,
-                      fontWeight: FontWeight.bold,
-                      fontFamily: 'monospace',
-                      letterSpacing: 2,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    seconds,
-                    style: TextStyle(
-                      color: color,
-                      fontSize: 24,
-                      fontFamily: 'monospace',
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 8),
               Text(
-                dayName,
-                style: TextStyle(
-                  color: color,
-                  fontSize: 18,
-                  fontWeight: FontWeight.w500,
+                '$hours:$minutes',
+                style: const TextStyle(
+                  color: PlumaColors.onSurface,
+                  fontSize: 36,
+                  fontWeight: FontWeight.bold,
+                  fontFamily: 'monospace',
+                  letterSpacing: 1,
                 ),
               ),
-              const SizedBox(height: 4),
-              Text(
-                dateStr,
-                style: const TextStyle(
-                  color: PlumaColors.onSurfaceVariant,
-                  fontSize: 12,
-                  fontFamily: 'monospace',
+              Padding(
+                padding: const EdgeInsets.only(bottom: 4),
+                child: Text(
+                  ':$seconds',
+                  style: TextStyle(
+                    color: color,
+                    fontSize: 16,
+                    fontFamily: 'monospace',
+                  ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 32),
+          const SizedBox(height: 6),
+          Text(
+            dayName,
+            style: TextStyle(
+              color: color,
+              fontSize: 14,
+              fontWeight: FontWeight.w500,
+            ),
+          ),
+          const SizedBox(height: 2),
+          Text(
+            dateStr,
+            style: const TextStyle(
+              color: PlumaColors.onSurfaceVariant,
+              fontSize: 11,
+              fontFamily: 'monospace',
+            ),
+          ),
+          const SizedBox(height: 12),
           Container(
-            padding:
-                const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
               color: color.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(999),
@@ -594,19 +590,19 @@ class _DashboardViewState extends State<DashboardView> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 Container(
-                  width: 8,
-                  height: 8,
+                  width: 6,
+                  height: 6,
                   decoration: BoxDecoration(
                     color: color,
                     shape: BoxShape.circle,
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 6),
                 Text(
-                  'strefa czasowa GMT+2',
+                  'GMT+2',
                   style: TextStyle(
                     color: color,
-                    fontSize: 11,
+                    fontSize: 10,
                     fontFamily: 'monospace',
                   ),
                 ),

@@ -90,6 +90,7 @@ class _GlassCardState extends State<GlassCard>
     final color = widget.accent ?? Theme.of(context).colorScheme.primary;
     return ClipRRect(
       borderRadius: BorderRadius.circular(widget.radius),
+      clipBehavior: Clip.none,
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
         child: AnimatedBuilder(

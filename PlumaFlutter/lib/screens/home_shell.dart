@@ -17,7 +17,6 @@ class HomeShell extends StatefulWidget {
   final List<UserProfile> allUsers;
   final void Function(UserProfile) onUserUpdated;
   final VoidCallback onLogout;
-  final VoidCallback onRefreshUsers;
 
   const HomeShell({
     super.key,
@@ -26,7 +25,6 @@ class HomeShell extends StatefulWidget {
     required this.allUsers,
     required this.onUserUpdated,
     required this.onLogout,
-    required this.onRefreshUsers,
   });
 
   @override

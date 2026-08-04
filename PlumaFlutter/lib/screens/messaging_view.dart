@@ -42,6 +42,7 @@ class _MessagingViewState extends State<MessagingView> {
   bool _mobileShowChat = false;
   bool _showAllUsers = false;
   List<String> _friendsList = [];
+  bool _suppressPoll = false;
 
   static const _reactionEmojis = ['👍', '❤️', '🤣', '🫪', '🤯', '💀'];
 
@@ -101,13 +102,28 @@ class _MessagingViewState extends State<MessagingView> {
   }
 
   Future<void> _loadMessages() async {
+    if (_suppressPoll) return;
     final sel = _selected;
     if (sel == null) return;
     try {
       final msgs = await widget.services.api
           .getConversation(widget.currentUser.username, sel.username);
       if (mounted && _selected?.username == sel.username) {
-        setState(() => _messages = msgs);
+        setState(() {
+          final serverMap = {for (var m in msgs) m.id: m};
+          final merged = _messages.map((local) {
+            final server = serverMap[local.id];
+            if (server != null && local.edited &&
+                (local.updatedAt ?? 0) > (server.updatedAt ?? 0)) {
+              return local;
+            }
+            return server ?? local;
+          }).toList();
+          for (var s in msgs) {
+            if (!merged.any((m) => m.id == s.id)) merged.add(s);
+          }
+          _messages = merged;
+        });
         await widget.services.api.markConversationRead(
           widget.currentUser.username, sel.username);
       }
@@ -309,6 +325,7 @@ class _MessagingViewState extends State<MessagingView> {
               Navigator.pop(ctx);
               try {
                 await widget.services.api.editMessage(msg.id, newText);
+                _suppressPoll = true;
                 setState(() {
                   _messages = _messages.map((m) {
                     if (m.id == msg.id) {
@@ -325,6 +342,8 @@ class _MessagingViewState extends State<MessagingView> {
                     return m;
                   }).toList();
                 });
+                await Future.delayed(const Duration(seconds: 3));
+                _suppressPoll = false;
               } catch (_) {
                 _showSnack('Blad edycji wiadomosci.');
               }
@@ -351,11 +370,11 @@ class _MessagingViewState extends State<MessagingView> {
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: _reactionEmojis.map((emoji) {
               return GestureDetector(
-                onTap: () {
+                onTap: () async {
                   Navigator.pop(ctx);
-                  widget.services.api.toggleReaction(
+                  await widget.services.api.toggleReaction(
                       messageId, widget.currentUser.username, emoji);
-                  _loadMessages();
+                  await _loadMessages();
                 },
                 child: Text(emoji, style: const TextStyle(fontSize: 28)),
               );
@@ -978,46 +997,98 @@ class _MessagingViewState extends State<MessagingView> {
   }
 
   Widget _buildFormattedText(String text) {
-    final spans = <TextSpan>[];
-    final pattern = RegExp(r'(\*\*.*?\*\*|_.*?_|~~.*?~~|`.*?`)');
-    var lastEnd = 0;
-    for (final match in pattern.allMatches(text)) {
-      if (match.start > lastEnd) {
-        spans.add(TextSpan(text: text.substring(lastEnd, match.start)));
-      }
-      final segment = match.group(0)!;
-      if (segment.startsWith('**') && segment.endsWith('**')) {
-        spans.add(TextSpan(
-          text: segment.substring(2, segment.length - 2),
-          style: const TextStyle(fontWeight: FontWeight.bold),
-        ));
-      } else if (segment.startsWith('_') && segment.endsWith('_')) {
-        spans.add(TextSpan(
-          text: segment.substring(1, segment.length - 1),
-          style: const TextStyle(fontStyle: FontStyle.italic),
-        ));
-      } else if (segment.startsWith('~~') && segment.endsWith('~~')) {
-        spans.add(TextSpan(
-          text: segment.substring(2, segment.length - 2),
-          style: const TextStyle(decoration: TextDecoration.lineThrough),
-        ));
-      } else if (segment.startsWith('`') && segment.endsWith('`')) {
-        spans.add(TextSpan(
-          text: segment.substring(1, segment.length - 1),
-          style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
-        ));
-      }
-      lastEnd = match.end;
-    }
-    if (lastEnd < text.length) {
-      spans.add(TextSpan(text: text.substring(lastEnd)));
-    }
     return RichText(
       text: TextSpan(
         style: const TextStyle(color: PlumaColors.onSurface, fontSize: 14),
-        children: spans.isEmpty ? [TextSpan(text: text)] : spans,
+        children: _parseInline(text),
       ),
     );
+  }
+
+  List<TextSpan> _parseInline(String text) {
+    final spans = <TextSpan>[];
+    var i = 0;
+    while (i < text.length) {
+      // Code blocks — highest priority, never nest inside
+      if (text[i] == '`') {
+        final end = text.indexOf('`', i + 1);
+        if (end != -1) {
+          spans.add(TextSpan(
+            text: text.substring(i + 1, end),
+            style: const TextStyle(fontFamily: 'monospace', fontSize: 12),
+          ));
+          i = end + 1;
+          continue;
+        }
+      }
+      // Bold: **...**
+      if (i + 1 < text.length && text[i] == '*' && text[i + 1] == '*') {
+        final end = _findClosing(text, i + 2, '**');
+        if (end != -1) {
+          spans.add(TextSpan(
+            text: text.substring(i + 2, end),
+            style: const TextStyle(fontWeight: FontWeight.bold),
+            children: _parseInline(text.substring(i + 2, end)),
+          ));
+          i = end + 2;
+          continue;
+        }
+      }
+      // Strikethrough: ~~...~~
+      if (i + 1 < text.length && text[i] == '~' && text[i + 1] == '~') {
+        final end = _findClosing(text, i + 2, '~~');
+        if (end != -1) {
+          spans.add(TextSpan(
+            text: text.substring(i + 2, end),
+            style: const TextStyle(decoration: TextDecoration.lineThrough),
+            children: _parseInline(text.substring(i + 2, end)),
+          ));
+          i = end + 2;
+          continue;
+        }
+      }
+      // Italic: _..._ (require word boundary before opening)
+      if (text[i] == '_' && (i == 0 || _isWordBoundary(text[i - 1]))) {
+        final end = _findClosingUnderscore(text, i + 1);
+        if (end != -1 && (end + 1 >= text.length || _isWordBoundary(text[end + 1]))) {
+          spans.add(TextSpan(
+            text: text.substring(i + 1, end),
+            style: const TextStyle(fontStyle: FontStyle.italic),
+            children: _parseInline(text.substring(i + 1, end)),
+          ));
+          i = end + 1;
+          continue;
+        }
+      }
+      // Plain text — collect until next special char
+      var j = i + 1;
+      while (j < text.length && text[j] != '`' && text[j] != '*' && text[j] != '~' && text[j] != '_') {
+        j++;
+      }
+      spans.add(TextSpan(text: text.substring(i, j)));
+      i = j;
+    }
+    return spans;
+  }
+
+  int _findClosing(String text, int start, String marker) {
+    return text.indexOf(marker, start);
+  }
+
+  int _findClosingUnderscore(String text, int start) {
+    for (var i = start; i < text.length; i++) {
+      if (text[i] == '_' && (i == 0 || text[i - 1] != '\\')) {
+        return i;
+      }
+    }
+    return -1;
+  }
+
+  bool _isWordBoundary(String ch) {
+    return ch == ' ' || ch == '\n' || ch == '\t' || ch == ',' || ch == '.' ||
+        ch == '!' || ch == '?' || ch == ';' || ch == ':' || ch == '(' ||
+        ch == ')' || ch == '[' || ch == ']' || ch == '"' || ch == '\'' ||
+        ch == '-' || ch == '/';
   }
 
   List<Widget> _buildReactionChips(Message m) {
@@ -1031,10 +1102,10 @@ class _MessagingViewState extends State<MessagingView> {
     return grouped.entries.map((e) {
       final isMine = hasMine[e.key] == true;
       return GestureDetector(
-        onTap: () {
-          widget.services.api.toggleReaction(
+        onTap: () async {
+          await widget.services.api.toggleReaction(
               m.id, widget.currentUser.username, e.key);
-          _loadMessages();
+          await _loadMessages();
         },
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),

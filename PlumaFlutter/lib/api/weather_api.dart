@@ -33,19 +33,15 @@ class CityResult {
 
 class HourlyForecast {
   final String time;
-  final int rawHour;
   final int temp;
   final String icon;
   final int rainChance;
-  final String condition;
 
   const HourlyForecast({
     required this.time,
-    required this.rawHour,
     required this.temp,
     required this.icon,
     required this.rainChance,
-    required this.condition,
   });
 }
 
@@ -154,16 +150,13 @@ class WeatherApi {
       final hVal = tDate.hour;
       final itemNight = hVal >= 22 || hVal < 5;
       final itemCode = idx < codes.length ? (codes[idx] as num).round() : 0;
-      final details = _conditionFromCode(itemCode);
 
       list.add(HourlyForecast(
         time: i == 0 ? 'teraz' : '${hVal.toString().padLeft(2, '0')}:00',
-        rawHour: hVal,
         temp: idx < temps.length ? (temps[idx] as num).round() : 20,
         icon: _iconFromCode(itemCode, itemNight),
         rainChance:
             idx < rainChances.length ? (rainChances[idx] as num).round() : 0,
-        condition: details,
       ));
     }
     return list;

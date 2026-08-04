@@ -24,10 +24,6 @@ class FiredartApi extends PlumaApi {
     }
   }
 
-  // -----------------------------------------------------------------------
-  // AUTH
-  // -----------------------------------------------------------------------
-
   String _emailFor(String username) => '$username@pluma.app';
 
   @override
@@ -43,10 +39,7 @@ class FiredartApi extends PlumaApi {
       banner: 'assets/bliss-1024p.jpg',
       createdAt: now,
     );
-    await _firestore
-        .collection('users')
-        .document(username)
-        .set(profile.toMap());
+    await _firestore.collection('users').document(username).set(profile.toMap());
     return profile;
   }
 
@@ -60,10 +53,6 @@ class FiredartApi extends PlumaApi {
   Future<void> logout() async {
     _auth.signOut();
   }
-
-  // -----------------------------------------------------------------------
-  // USERS
-  // -----------------------------------------------------------------------
 
   Future<UserProfile> _getOrCreateProfile(String username) async {
     final doc = await _firestore.collection('users').document(username).get();
@@ -80,10 +69,7 @@ class FiredartApi extends PlumaApi {
       banner: 'assets/bliss-1024p.jpg',
       createdAt: now,
     );
-    await _firestore
-        .collection('users')
-        .document(username)
-        .set(profile.toMap());
+    await _firestore.collection('users').document(username).set(profile.toMap());
     return profile;
   }
 
@@ -120,22 +106,12 @@ class FiredartApi extends PlumaApi {
     if (theme != null) updates['theme'] = theme;
     if (themeId != null) updates['themeId'] = themeId;
     if (updates.isNotEmpty) {
-      await _firestore
-          .collection('users')
-          .document(username)
-          .update(updates);
+      await _firestore.collection('users').document(username).update(updates);
     }
   }
 
-  @override
-  Stream<List<UserProfile>> usersStream() {
-    return _firestore.collection('users').stream.map(
-      (docs) => docs.map((d) => UserProfile.fromMap(d.map)).toList(),
-    );
-  }
-
   // -----------------------------------------------------------------------
-  // MESSAGES — kolekcja dms/{convId}/messages/{msgId}
+  // MESSAGES
   // -----------------------------------------------------------------------
 
   String _conversationId(String a, String b) {
@@ -183,21 +159,6 @@ class FiredartApi extends PlumaApi {
   }
 
   @override
-  Future<List<Message>> getAllMessages() async {
-    final convPage = await _firestore.collection('dms').get();
-    final all = <Message>[];
-    for (final conv in convPage) {
-      final items = await conv.reference
-          .collection('messages')
-          .orderBy('createdAt')
-          .get();
-      all.addAll(items.map((d) => Message.fromJson(d.map)));
-    }
-    all.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    return all;
-  }
-
-  @override
   Future<void> deleteMessage(String messageId) async {
     final convPage = await _firestore.collection('dms').get();
     for (final conv in convPage) {
@@ -220,18 +181,6 @@ class FiredartApi extends PlumaApi {
           'edited': true,
           'updatedAt': DateTime.now().millisecondsSinceEpoch,
         });
-        return;
-      }
-    }
-  }
-
-  @override
-  Future<void> updateMessageStatus(String messageId, String status) async {
-    final convPage = await _firestore.collection('dms').get();
-    for (final conv in convPage) {
-      final docRef = conv.reference.collection('messages').document(messageId);
-      if (await docRef.exists) {
-        await docRef.update({'status': status});
         return;
       }
     }
@@ -275,7 +224,7 @@ class FiredartApi extends PlumaApi {
   }
 
   // -----------------------------------------------------------------------
-  // INVITATIONS — kolekcja invitations/{id}
+  // INVITATIONS
   // -----------------------------------------------------------------------
 
   @override
@@ -287,7 +236,6 @@ class FiredartApi extends PlumaApi {
         .where('status', isEqualTo: 'pending')
         .get();
     if (existing.isNotEmpty) return;
-
     final reverse = await _firestore
         .collection('invitations')
         .where('from', isEqualTo: to)
@@ -295,7 +243,6 @@ class FiredartApi extends PlumaApi {
         .where('status', isEqualTo: 'pending')
         .get();
     if (reverse.isNotEmpty) return;
-
     await _firestore.collection('invitations').add({
       'from': from,
       'to': to,
@@ -324,26 +271,6 @@ class FiredartApi extends PlumaApi {
   }
 
   @override
-  Future<bool> areFriends(String user1, String user2) async {
-    final q1 = await _firestore
-        .collection('invitations')
-        .where('from', isEqualTo: user1)
-        .where('to', isEqualTo: user2)
-        .where('status', isEqualTo: 'accepted')
-        .limit(1)
-        .get();
-    if (q1.isNotEmpty) return true;
-    final q2 = await _firestore
-        .collection('invitations')
-        .where('from', isEqualTo: user2)
-        .where('to', isEqualTo: user1)
-        .where('status', isEqualTo: 'accepted')
-        .limit(1)
-        .get();
-    return q2.isNotEmpty;
-  }
-
-  @override
   Future<List<String>> getFriendUsernames(String username) async {
     final q1 = await _firestore
         .collection('invitations')
@@ -363,21 +290,5 @@ class FiredartApi extends PlumaApi {
       friends.add(d.map['from'] as String);
     }
     return friends.toList();
-  }
-
-  @override
-  Stream<List<Message>> conversationStream(String user1, String user2) async* {
-    while (true) {
-      yield await getConversation(user1, user2);
-      await Future.delayed(const Duration(seconds: 2));
-    }
-  }
-
-  @override
-  Stream<List<Message>> allMessagesStream() async* {
-    while (true) {
-      yield await getAllMessages();
-      await Future.delayed(const Duration(seconds: 2));
-    }
   }
 }

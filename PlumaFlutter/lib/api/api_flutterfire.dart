@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 
@@ -11,10 +9,6 @@ import 'models.dart';
 class FlutterFireApi extends PlumaApi {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
-
-  // -----------------------------------------------------------------------
-  // AUTH
-  // -----------------------------------------------------------------------
 
   String _emailFor(String username) => '$username@pluma.app';
 
@@ -54,10 +48,6 @@ class FlutterFireApi extends PlumaApi {
     await _auth.signOut();
   }
 
-  // -----------------------------------------------------------------------
-  // USERS
-  // -----------------------------------------------------------------------
-
   Future<UserProfile> _getOrCreateProfile(String username) async {
     final doc = await _db.collection('users').doc(username).get();
     if (doc.exists) {
@@ -84,9 +74,7 @@ class FlutterFireApi extends PlumaApi {
   @override
   Future<List<UserProfile>> getAllUsers() async {
     final snap = await _db.collection('users').get();
-    return snap.docs
-        .map((d) => UserProfile.fromMap(d.data()))
-        .toList();
+    return snap.docs.map((d) => UserProfile.fromMap(d.data())).toList();
   }
 
   @override
@@ -114,13 +102,6 @@ class FlutterFireApi extends PlumaApi {
     if (updates.isNotEmpty) {
       await _db.collection('users').doc(username).update(updates);
     }
-  }
-
-  @override
-  Stream<List<UserProfile>> usersStream() {
-    return _db.collection('users').snapshots().map(
-      (snap) => snap.docs.map((d) => UserProfile.fromMap(d.data())).toList(),
-    );
   }
 
   // -----------------------------------------------------------------------
@@ -172,21 +153,6 @@ class FlutterFireApi extends PlumaApi {
   }
 
   @override
-  Future<List<Message>> getAllMessages() async {
-    final convSnap = await _db.collection('dms').get();
-    final all = <Message>[];
-    for (final conv in convSnap.docs) {
-      final items = await conv.reference
-          .collection('messages')
-          .orderBy('createdAt', descending: false)
-          .get();
-      all.addAll(items.docs.map((d) => Message.fromJson(d.data())));
-    }
-    all.sort((a, b) => a.createdAt.compareTo(b.createdAt));
-    return all;
-  }
-
-  @override
   Future<void> deleteMessage(String messageId) async {
     final convSnap = await _db.collection('dms').get();
     for (final conv in convSnap.docs) {
@@ -209,18 +175,6 @@ class FlutterFireApi extends PlumaApi {
           'edited': true,
           'updatedAt': DateTime.now().millisecondsSinceEpoch,
         });
-        return;
-      }
-    }
-  }
-
-  @override
-  Future<void> updateMessageStatus(String messageId, String status) async {
-    final convSnap = await _db.collection('dms').get();
-    for (final conv in convSnap.docs) {
-      final ref = conv.reference.collection('messages').doc(messageId);
-      if ((await ref.get()).exists) {
-        await ref.update({'status': status});
         return;
       }
     }
@@ -265,7 +219,7 @@ class FlutterFireApi extends PlumaApi {
   }
 
   // -----------------------------------------------------------------------
-  // INVITATIONS — kolekcja invitations/{id}
+  // INVITATIONS
   // -----------------------------------------------------------------------
 
   @override
@@ -277,7 +231,6 @@ class FlutterFireApi extends PlumaApi {
         .where('status', isEqualTo: 'pending')
         .get();
     if (q.docs.isNotEmpty) return;
-
     final r = await _db
         .collection('invitations')
         .where('from', isEqualTo: to)
@@ -285,7 +238,6 @@ class FlutterFireApi extends PlumaApi {
         .where('status', isEqualTo: 'pending')
         .get();
     if (r.docs.isNotEmpty) return;
-
     await _db.collection('invitations').add({
       'from': from,
       'to': to,
@@ -314,26 +266,6 @@ class FlutterFireApi extends PlumaApi {
   }
 
   @override
-  Future<bool> areFriends(String user1, String user2) async {
-    final q1 = await _db
-        .collection('invitations')
-        .where('from', isEqualTo: user1)
-        .where('to', isEqualTo: user2)
-        .where('status', isEqualTo: 'accepted')
-        .limit(1)
-        .get();
-    if (q1.docs.isNotEmpty) return true;
-    final q2 = await _db
-        .collection('invitations')
-        .where('from', isEqualTo: user2)
-        .where('to', isEqualTo: user1)
-        .where('status', isEqualTo: 'accepted')
-        .limit(1)
-        .get();
-    return q2.docs.isNotEmpty;
-  }
-
-  @override
   Future<List<String>> getFriendUsernames(String username) async {
     final q1 = await _db
         .collection('invitations')
@@ -353,32 +285,5 @@ class FlutterFireApi extends PlumaApi {
       friends.add(d.data()['from'] as String);
     }
     return friends.toList();
-  }
-
-  @override
-  Stream<List<Message>> conversationStream(String user1, String user2) {
-    return _db
-        .collection('dms')
-        .doc(_conversationId(user1, user2))
-        .collection('messages')
-        .orderBy('createdAt', descending: false)
-        .snapshots()
-        .map(
-      (snap) => snap.docs.map((d) => Message.fromJson(d.data())).toList(),
-    );
-  }
-
-  @override
-  Stream<List<Message>> allMessagesStream() async* {
-    final convSnap = await _db.collection('dms').get();
-    if (convSnap.docs.isEmpty) return;
-    for (final conv in convSnap.docs) {
-      yield* conv.reference
-          .collection('messages')
-          .orderBy('createdAt', descending: false)
-          .snapshots()
-          .map((snap) =>
-              snap.docs.map((d) => Message.fromJson(d.data())).toList());
-    }
   }
 }

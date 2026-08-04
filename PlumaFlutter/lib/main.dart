@@ -108,7 +108,6 @@ class _RootScreenState extends State<RootScreen> {
             (route) => false,
           );
         },
-        onRefreshUsers: _loadUsers,
       ),
     );
   }

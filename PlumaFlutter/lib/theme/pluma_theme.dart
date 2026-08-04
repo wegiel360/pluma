@@ -5,7 +5,6 @@ class PlumaColors {
   static const Color surfaceBright = Color(0xFF2B3E1D);
   static const Color onSurface = Color(0xFFD2EABB);
   static const Color onSurfaceVariant = Color(0xFFA0B88D);
-  static const Color outline = Color(0xFFA18D7C);
   static const Color primary = Color(0xFFFFB870);
   static const Color onPrimary = Color(0xFF4A2800);
   static const Color secondary = Color(0xFF67DAC2);

@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 
 import 'package:image_picker/image_picker.dart';
 
@@ -10,13 +9,6 @@ class ImageUtils {
       throw const FormatException('Nieprawidlowy plik obrazu.');
     }
     return _toDataUrl(bytes, file.name);
-  }
-
-  static Future<String> compressToBase64FromBytes(
-    List<int> bytes, {
-    String filename = 'image',
-  }) async {
-    return _toDataUrl(bytes, filename);
   }
 
   static Future<String> convertVideoToBase64(XFile file) async {
@@ -67,23 +59,5 @@ class ImageUtils {
     final m = date.minute.toString().padLeft(2, '0');
     final s = date.second.toString().padLeft(2, '0');
     return '${date.day} ${months[date.month - 1]} ${date.year} o $h:$m:$s';
-  }
-}
-
-/// Basic image downscale helper (reserved for future use).
-class ImageScaler {
-  static List<int> nearestNeighborDownscale(List<int> bytes, int factor) {
-    if (factor <= 1) return bytes;
-    final side = sqrt(bytes.length).floor();
-    if (side <= 0) return bytes;
-    final newSide = max(1, side ~/ factor);
-    final out = <int>[];
-    for (var y = 0; y < newSide; y++) {
-      for (var x = 0; x < newSide; x++) {
-        final src = ((y * factor) * side) + (x * factor);
-        if (src < bytes.length) out.add(bytes[src]);
-      }
-    }
-    return out;
   }
 }
