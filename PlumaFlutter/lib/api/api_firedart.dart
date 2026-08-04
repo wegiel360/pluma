@@ -4,7 +4,7 @@ import 'api.dart';
 import 'models.dart';
 
 /// Implementacja firedart — pure Dart Firebase Auth + Firestore.
-/// Działa natywnie na Windows bez żadnych natywnych pluginów.
+/// Dziala natywnie na Windows bez zadnych natywnych pluginow.
 class FiredartApi extends PlumaApi {
   static const _projectId = 'plumamsg';
   static const _apiKey = 'AIzaSyD_q9o1IWXBvf0UbLukMzB-pSf3lk6h3Co';
@@ -36,6 +36,7 @@ class FiredartApi extends PlumaApi {
     final now = DateTime.now().millisecondsSinceEpoch;
     final profile = UserProfile(
       username: username,
+      name: username,
       bio: 'uzytkownik pluma',
       color: '#ffb870',
       pfp: 'assets/logo-kogut-500x500.png',
@@ -45,7 +46,7 @@ class FiredartApi extends PlumaApi {
     await _firestore
         .collection('users')
         .document(username)
-        .set(profile.toJson());
+        .set(profile.toMap());
     return profile;
   }
 
@@ -67,11 +68,12 @@ class FiredartApi extends PlumaApi {
   Future<UserProfile> _getOrCreateProfile(String username) async {
     final doc = await _firestore.collection('users').document(username).get();
     if (await doc.reference.exists) {
-      return UserProfile.fromJson(doc.map);
+      return UserProfile.fromMap(doc.map);
     }
     final now = DateTime.now().millisecondsSinceEpoch;
     final profile = UserProfile(
       username: username,
+      name: username,
       bio: 'uzytkownik pluma',
       color: '#ffb870',
       pfp: 'assets/logo-kogut-500x500.png',
@@ -81,7 +83,7 @@ class FiredartApi extends PlumaApi {
     await _firestore
         .collection('users')
         .document(username)
-        .set(profile.toJson());
+        .set(profile.toMap());
     return profile;
   }
 
@@ -92,18 +94,31 @@ class FiredartApi extends PlumaApi {
   @override
   Future<List<UserProfile>> getAllUsers() async {
     final page = await _firestore.collection('users').get();
-    return page.map((d) => UserProfile.fromJson(d.map)).toList();
+    return page.map((d) => UserProfile.fromMap(d.map)).toList();
   }
 
   @override
   Future<void> updateUser(String username, {
-    String? bio, String? pfp, String? banner, String? color,
+    String? name,
+    String? bio,
+    String? pfp,
+    String? banner,
+    String? color,
+    String? joined,
+    String? pw,
+    String? theme,
+    String? themeId,
   }) async {
     final updates = <String, dynamic>{};
+    if (name != null) updates['name'] = name;
     if (bio != null) updates['bio'] = bio;
     if (pfp != null) updates['pfp'] = pfp;
     if (banner != null) updates['banner'] = banner;
     if (color != null) updates['color'] = color;
+    if (joined != null) updates['joined'] = joined;
+    if (pw != null) updates['pw'] = pw;
+    if (theme != null) updates['theme'] = theme;
+    if (themeId != null) updates['themeId'] = themeId;
     if (updates.isNotEmpty) {
       await _firestore
           .collection('users')
@@ -115,12 +130,12 @@ class FiredartApi extends PlumaApi {
   @override
   Stream<List<UserProfile>> usersStream() {
     return _firestore.collection('users').stream.map(
-      (docs) => docs.map((d) => UserProfile.fromJson(d.map)).toList(),
+      (docs) => docs.map((d) => UserProfile.fromMap(d.map)).toList(),
     );
   }
 
   // -----------------------------------------------------------------------
-  // MESSAGES
+  // MESSAGES — kolekcja dms/{convId}/messages/{msgId}
   // -----------------------------------------------------------------------
 
   String _conversationId(String a, String b) {
@@ -150,19 +165,18 @@ class FiredartApi extends PlumaApi {
       videoUrl: videoUrl,
     );
     await _firestore
-        .collection('messages')
+        .collection('dms')
         .document(_conversationId(sender, recipient))
-        .collection('items')
-        .document(msg.id)
-        .set(msg.toJson());
+        .collection('messages')
+        .add(msg.toJson());
   }
 
   @override
   Future<List<Message>> getConversation(String user1, String user2) async {
     final page = await _firestore
-        .collection('messages')
+        .collection('dms')
         .document(_conversationId(user1, user2))
-        .collection('items')
+        .collection('messages')
         .orderBy('createdAt')
         .get();
     return page.map((d) => Message.fromJson(d.map)).toList();
@@ -170,11 +184,11 @@ class FiredartApi extends PlumaApi {
 
   @override
   Future<List<Message>> getAllMessages() async {
-    final convPage = await _firestore.collection('messages').get();
+    final convPage = await _firestore.collection('dms').get();
     final all = <Message>[];
     for (final conv in convPage) {
       final items = await conv.reference
-          .collection('items')
+          .collection('messages')
           .orderBy('createdAt')
           .get();
       all.addAll(items.map((d) => Message.fromJson(d.map)));
@@ -185,9 +199,9 @@ class FiredartApi extends PlumaApi {
 
   @override
   Future<void> deleteMessage(String messageId) async {
-    final convPage = await _firestore.collection('messages').get();
+    final convPage = await _firestore.collection('dms').get();
     for (final conv in convPage) {
-      final docRef = conv.reference.collection('items').document(messageId);
+      final docRef = conv.reference.collection('messages').document(messageId);
       if (await docRef.exists) {
         await docRef.delete();
         return;

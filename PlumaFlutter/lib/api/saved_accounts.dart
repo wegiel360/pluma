@@ -14,7 +14,7 @@ class SavedAccounts {
     try {
       final list = jsonDecode(raw) as List;
       return list
-          .map((e) => UserProfile.fromJson(e as Map<String, dynamic>))
+          .map((e) => UserProfile.fromMap(e as Map<String, dynamic>))
           .toList();
     } catch (_) {
       return [];
@@ -27,7 +27,7 @@ class SavedAccounts {
     final filtered =
         current.where((u) => u.username.toLowerCase() != user.username.toLowerCase()).toList();
     filtered.insert(0, user);
-    await prefs.setString(_key, jsonEncode(filtered.map((u) => u.toJson()).toList()));
+    await prefs.setString(_key, jsonEncode(filtered.map((u) => u.toMap()).toList()));
   }
 
   static Future<void> remove(String username) async {
@@ -36,6 +36,6 @@ class SavedAccounts {
     final filtered = current
         .where((u) => u.username.toLowerCase() != username.toLowerCase())
         .toList();
-    await prefs.setString(_key, jsonEncode(filtered.map((u) => u.toJson()).toList()));
+    await prefs.setString(_key, jsonEncode(filtered.map((u) => u.toMap()).toList()));
   }
 }

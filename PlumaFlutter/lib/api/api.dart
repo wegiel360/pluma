@@ -1,7 +1,7 @@
 import 'models.dart';
 
-/// Abstrakcyjna warstwa API — niezależna od backendu.
-/// Factory wybiera implementację na podstawie platformy.
+/// Abstrakcyjna warstwa API — niezalezna od backendu.
+/// Factory wybiera implementacje na podstawie platformy.
 abstract class PlumaApi {
   // Auth
   Future<UserProfile> login(String username, String password);
@@ -12,7 +12,15 @@ abstract class PlumaApi {
   Future<UserProfile> getOrCreateUser(String username);
   Future<List<UserProfile>> getAllUsers();
   Future<void> updateUser(String username, {
-    String? bio, String? pfp, String? banner, String? color,
+    String? name,
+    String? bio,
+    String? pfp,
+    String? banner,
+    String? color,
+    String? joined,
+    String? pw,
+    String? theme,
+    String? themeId,
   });
 
   // Messages

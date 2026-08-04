@@ -1,39 +1,59 @@
 class UserProfile {
   final String username;
+  final String name;
   final String bio;
   final String color;
   final String pfp;
   final String banner;
+  final String joined;
+  final String pw;
+  final String theme;
+  final String themeId;
   final int createdAt;
 
   const UserProfile({
     required this.username,
-    required this.bio,
-    required this.color,
-    required this.pfp,
-    required this.banner,
-    required this.createdAt,
+    this.name = '',
+    this.bio = '',
+    this.color = '#ffb870',
+    this.pfp = 'assets/logo-kogut-500x500.png',
+    this.banner = 'assets/bliss-1024p.jpg',
+    this.joined = '',
+    this.pw = '',
+    this.theme = '',
+    this.themeId = '',
+    this.createdAt = 0,
   });
 
-  factory UserProfile.fromJson(Map<String, dynamic> json) {
+  factory UserProfile.fromMap(Map<String, dynamic> json) {
     return UserProfile(
       username: (json['username'] ?? '').toString(),
+      name: (json['name'] ?? '').toString(),
       bio: (json['bio'] ?? '').toString(),
       color: (json['color'] ?? '#ffb870').toString(),
       pfp: (json['pfp'] ?? 'assets/logo-kogut-500x500.png').toString(),
       banner: (json['banner'] ?? 'assets/bliss-1024p.jpg').toString(),
+      joined: (json['joined'] ?? '').toString(),
+      pw: (json['pw'] ?? '').toString(),
+      theme: (json['theme'] ?? '').toString(),
+      themeId: (json['themeId'] ?? '').toString(),
       createdAt: (json['createdAt'] ?? 0) is int
           ? json['createdAt'] as int
           : int.tryParse((json['createdAt'] ?? '0').toString()) ?? 0,
     );
   }
 
-  Map<String, dynamic> toJson() => {
+  Map<String, dynamic> toMap() => {
         'username': username,
+        'name': name,
         'bio': bio,
         'color': color,
         'pfp': pfp,
         'banner': banner,
+        'joined': joined,
+        'pw': pw,
+        'theme': theme,
+        'themeId': themeId,
         'createdAt': createdAt,
       };
 
@@ -42,13 +62,23 @@ class UserProfile {
     String? color,
     String? pfp,
     String? banner,
+    String? name,
+    String? joined,
+    String? pw,
+    String? theme,
+    String? themeId,
   }) {
     return UserProfile(
       username: username,
+      name: name ?? this.name,
       bio: bio ?? this.bio,
       color: color ?? this.color,
       pfp: pfp ?? this.pfp,
       banner: banner ?? this.banner,
+      joined: joined ?? this.joined,
+      pw: pw ?? this.pw,
+      theme: theme ?? this.theme,
+      themeId: themeId ?? this.themeId,
       createdAt: createdAt,
     );
   }

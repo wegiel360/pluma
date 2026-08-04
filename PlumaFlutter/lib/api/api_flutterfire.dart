@@ -7,7 +7,7 @@ import 'api.dart';
 import 'models.dart';
 
 /// Implementacja FlutterFire — Firebase Auth + Cloud Firestore.
-/// Działa na Androidzie i Web.
+/// Dziala na Androidzie i Web.
 class FlutterFireApi extends PlumaApi {
   final FirebaseAuth _auth = FirebaseAuth.instance;
   final FirebaseFirestore _db = FirebaseFirestore.instance;
@@ -29,13 +29,14 @@ class FlutterFireApi extends PlumaApi {
     final now = DateTime.now().millisecondsSinceEpoch;
     final profile = UserProfile(
       username: username,
+      name: username,
       bio: 'uzytkownik pluma',
       color: '#ffb870',
       pfp: 'assets/logo-kogut-500x500.png',
       banner: 'assets/bliss-1024p.jpg',
       createdAt: now,
     );
-    await _db.collection('users').doc(username).set(profile.toJson());
+    await _db.collection('users').doc(username).set(profile.toMap());
     return profile;
   }
 
@@ -60,18 +61,19 @@ class FlutterFireApi extends PlumaApi {
   Future<UserProfile> _getOrCreateProfile(String username) async {
     final doc = await _db.collection('users').doc(username).get();
     if (doc.exists) {
-      return UserProfile.fromJson(doc.data()!);
+      return UserProfile.fromMap(doc.data()!);
     }
     final now = DateTime.now().millisecondsSinceEpoch;
     final profile = UserProfile(
       username: username,
+      name: username,
       bio: 'uzytkownik pluma',
       color: '#ffb870',
       pfp: 'assets/logo-kogut-500x500.png',
       banner: 'assets/bliss-1024p.jpg',
       createdAt: now,
     );
-    await _db.collection('users').doc(username).set(profile.toJson());
+    await _db.collection('users').doc(username).set(profile.toMap());
     return profile;
   }
 
@@ -83,19 +85,32 @@ class FlutterFireApi extends PlumaApi {
   Future<List<UserProfile>> getAllUsers() async {
     final snap = await _db.collection('users').get();
     return snap.docs
-        .map((d) => UserProfile.fromJson(d.data()))
+        .map((d) => UserProfile.fromMap(d.data()))
         .toList();
   }
 
   @override
   Future<void> updateUser(String username, {
-    String? bio, String? pfp, String? banner, String? color,
+    String? name,
+    String? bio,
+    String? pfp,
+    String? banner,
+    String? color,
+    String? joined,
+    String? pw,
+    String? theme,
+    String? themeId,
   }) async {
     final updates = <String, dynamic>{};
+    if (name != null) updates['name'] = name;
     if (bio != null) updates['bio'] = bio;
     if (pfp != null) updates['pfp'] = pfp;
     if (banner != null) updates['banner'] = banner;
     if (color != null) updates['color'] = color;
+    if (joined != null) updates['joined'] = joined;
+    if (pw != null) updates['pw'] = pw;
+    if (theme != null) updates['theme'] = theme;
+    if (themeId != null) updates['themeId'] = themeId;
     if (updates.isNotEmpty) {
       await _db.collection('users').doc(username).update(updates);
     }
@@ -104,12 +119,12 @@ class FlutterFireApi extends PlumaApi {
   @override
   Stream<List<UserProfile>> usersStream() {
     return _db.collection('users').snapshots().map(
-      (snap) => snap.docs.map((d) => UserProfile.fromJson(d.data())).toList(),
+      (snap) => snap.docs.map((d) => UserProfile.fromMap(d.data())).toList(),
     );
   }
 
   // -----------------------------------------------------------------------
-  // MESSAGES
+  // MESSAGES — kolekcja dms/{convId}/messages/{msgId}
   // -----------------------------------------------------------------------
 
   String _conversationId(String a, String b) {
@@ -139,19 +154,18 @@ class FlutterFireApi extends PlumaApi {
       videoUrl: videoUrl,
     );
     await _db
-        .collection('messages')
+        .collection('dms')
         .doc(_conversationId(sender, recipient))
-        .collection('items')
-        .doc(msg.id)
-        .set(msg.toJson());
+        .collection('messages')
+        .add(msg.toJson());
   }
 
   @override
   Future<List<Message>> getConversation(String user1, String user2) async {
     final snap = await _db
-        .collection('messages')
+        .collection('dms')
         .doc(_conversationId(user1, user2))
-        .collection('items')
+        .collection('messages')
         .orderBy('createdAt', descending: false)
         .get();
     return snap.docs.map((d) => Message.fromJson(d.data())).toList();
@@ -159,11 +173,11 @@ class FlutterFireApi extends PlumaApi {
 
   @override
   Future<List<Message>> getAllMessages() async {
-    final convSnap = await _db.collection('messages').get();
+    final convSnap = await _db.collection('dms').get();
     final all = <Message>[];
     for (final conv in convSnap.docs) {
       final items = await conv.reference
-          .collection('items')
+          .collection('messages')
           .orderBy('createdAt', descending: false)
           .get();
       all.addAll(items.docs.map((d) => Message.fromJson(d.data())));
@@ -174,9 +188,9 @@ class FlutterFireApi extends PlumaApi {
 
   @override
   Future<void> deleteMessage(String messageId) async {
-    final convSnap = await _db.collection('messages').get();
+    final convSnap = await _db.collection('dms').get();
     for (final conv in convSnap.docs) {
-      final ref = conv.reference.collection('items').doc(messageId);
+      final ref = conv.reference.collection('messages').doc(messageId);
       if ((await ref.get()).exists) {
         await ref.delete();
         return;
@@ -187,9 +201,9 @@ class FlutterFireApi extends PlumaApi {
   @override
   Stream<List<Message>> conversationStream(String user1, String user2) {
     return _db
-        .collection('messages')
+        .collection('dms')
         .doc(_conversationId(user1, user2))
-        .collection('items')
+        .collection('messages')
         .orderBy('createdAt', descending: false)
         .snapshots()
         .map(
@@ -199,11 +213,11 @@ class FlutterFireApi extends PlumaApi {
 
   @override
   Stream<List<Message>> allMessagesStream() async* {
-    final convSnap = await _db.collection('messages').get();
+    final convSnap = await _db.collection('dms').get();
     if (convSnap.docs.isEmpty) return;
     for (final conv in convSnap.docs) {
       yield* conv.reference
-          .collection('items')
+          .collection('messages')
           .orderBy('createdAt', descending: false)
           .snapshots()
           .map((snap) =>
