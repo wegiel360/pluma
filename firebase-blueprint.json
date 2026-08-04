@@ -1,0 +1,45 @@
+{
+  "entities": {
+    "User": {
+      "title": "User",
+      "description": "A user profile in the messenger application",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "username": { "type": "string" },
+        "displayName": { "type": "string" },
+        "bio": { "type": "string" },
+        "color": { "type": "string" },
+        "pfp": { "type": "string" },
+        "banner": { "type": "string" },
+        "createdAt": { "type": "number" }
+      },
+      "required": ["username", "createdAt"]
+    },
+    "Message": {
+      "title": "Message",
+      "description": "A chat message between two users",
+      "type": "object",
+      "properties": {
+        "sender": { "type": "string" },
+        "recipient": { "type": "string" },
+        "text": { "type": "string" },
+        "timestamp": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "isImage": { "type": "boolean" },
+        "imageUrl": { "type": "string" }
+      },
+      "required": ["sender", "recipient", "text", "createdAt"]
+    }
+  },
+  "firestore": {
+    "/users/{username}": {
+      "schema": { "$ref": "#/entities/User" },
+      "description": "User profiles indexed by username"
+    },
+    "/messages/{messageId}": {
+      "schema": { "$ref": "#/entities/Message" },
+      "description": "Direct messages between users"
+    }
+  }
+}

@@ -1,0 +1,269 @@
+<!DOCTYPE html><html class="dark" lang="pl"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Pluma - Osoby i Wiadomości</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@300;400;500;700&amp;family=Ubuntu+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "surface": "#061700",
+                        "on-surface": "#bbf295",
+                        "primary": "#ffb870",
+                        "on-primary": "#4a2800",
+                        "outline-variant": "#534436",
+                        "surface-container": "#0c2500",
+                        "surface-dim": "#061700",
+                        "on-surface-variant": "#d9c2b0",
+                        "primary-container": "#d07d12",
+                        "surface-container-low": "#0a2100",
+                        "surface-container-high": "#123100",
+                        "on-background": "#bbf295",
+                        "neon": "#98FF98"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "1rem",
+                        "lg": "2rem",
+                        "xl": "3rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "24px",
+                        "gutter": "16px",
+                        "sidebar-width": "72px"
+                    },
+                    "fontFamily": {
+                        "body": ["Ubuntu", "sans-serif"],
+                        "mono": ["Ubuntu Mono", "monospace"]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        :root {
+            --glass-bg: rgba(6, 23, 0, 0.45);
+            --glass-border: rgba(255, 184, 112, 0.15);
+            --iridescent-border: linear-gradient(135deg, rgba(255,184,112,0.2) 0%, rgba(103,218,194,0.2) 50%, rgba(146,207,234,0.2) 100%);
+        }
+        body {
+            background-color: #061700;
+            overflow: hidden;
+            font-family: 'Ubuntu', sans-serif;
+        }
+        .ultra-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(40px);
+            -webkit-backdrop-filter: blur(40px);
+            border: 1px solid var(--glass-border);
+        }
+        .glass-panel {
+            background: rgba(6, 23, 0, 0.6);
+            backdrop-filter: blur(32px);
+            -webkit-backdrop-filter: blur(32px);
+            border: 1px solid var(--glass-border);
+        }
+        .iridescent-border {
+            position: relative;
+        }
+        .iridescent-border::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: var(--iridescent-border);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: rgba(210, 125, 18, 0.3);
+            border-radius: 10px;
+        }
+        .neon-glow-active {
+            box-shadow: 0 0 10px rgba(152, 255, 152, 0.4);
+            border: 2px solid #98FF98;
+        }
+    </style>
+</head>
+<body class="bg-surface-dim text-on-surface h-screen w-screen overflow-hidden custom-scrollbar">
+<!-- Background Layer -->
+<div class="fixed inset-0 z-0">
+<img alt="Bliss Background" class="w-full h-full object-cover scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBSXfbH3asHgKvTZMC_RGFgo5pYJj01bj0H6IwlxsMIhCb4OXkpMLrZBjtDCq3TCAfu6rvJSMl7IcJ7nraI8skpZ3rq_gDvgBlzJAq2DW6QaaKnoIcfE4sY_CBT-KY7SPQvaIc2Ux4R8D8NilbmbJ2FVbdnSgqNEm2DVuRErubbH8De_m9Nv29-6yXkOrLcaw4lqqtEuEPp1dFqo1L3BEc5LWiRbxPGNWZIkp5VH4OkIMTETuCYhH9w72d3De75qPErbA">
+<div class="absolute inset-0 backdrop-blur-[4px] bg-surface-dim/30"></div>
+</div>
+<!-- Navigation Rail (72px) -->
+<nav class="fixed left-0 top-0 h-screen w-[72px] border-r border-outline-variant/10 flex flex-col items-center py-8 gap-8 z-50 glass-panel">
+<div class="flex flex-col items-center gap-1 cursor-pointer">
+<div class="w-10 h-10 flex items-center justify-center overflow-hidden">
+<img alt="Pluma Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuALWjg7_2R9ex1cGJEreex3TTTNQaeBMxc3S4jufaemQsahIzIwHoHi332Equ3Cpjf2GUiaR8yxwxOZY09z1xrt8pVL7Xs84P8GXoUabgjSpIRHBxr9wz-JLp4GdOz6ACcQ2sroguc4dS8yLC7QI4HOYI6gLclOzcfarJId2dvKkPEwd0tjFkIfP0rPZkB-hOTkLfYqouEWJ_3MnDa9YTAcGkWKg28q0OmTwul3_PlyrHOcPXD8xm5hVCTSX3Cvx-CXLg">
+</div>
+<span class="text-[10px] font-bold text-primary tracking-wider font-body">Pluma</span>
+</div>
+<div class="flex flex-col gap-6 mt-4">
+<!-- Pulpit -->
+<button class="w-12 h-12 flex items-center justify-center rounded-xl text-on-surface-variant hover:bg-surface-container-high/50 hover:text-primary transition-all duration-300 group relative">
+<span class="material-symbols-outlined text-[24px]">dashboard</span>
+<span class="absolute left-16 bg-surface-container-high px-2 py-1 rounded text-[10px] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-lg">Pulpit</span>
+</button>
+<!-- Osoby - Active -->
+<button class="w-12 h-12 flex items-center justify-center rounded-xl text-primary border-l-4 border-primary bg-primary/10 group relative">
+<span class="material-symbols-outlined text-[24px]" style="font-variation-settings: 'FILL' 1;">group</span>
+<span class="absolute left-16 bg-surface-container-high px-2 py-1 rounded text-[10px] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-lg">Osoby</span>
+</button>
+<!-- Profil -->
+<button class="w-12 h-12 flex items-center justify-center rounded-xl text-on-surface-variant hover:bg-surface-container-high/50 hover:text-primary transition-all duration-300 group relative">
+<span class="material-symbols-outlined text-[24px]">person</span>
+<span class="absolute left-16 bg-surface-container-high px-2 py-1 rounded text-[10px] opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap z-50 shadow-lg">Profil</span>
+</button>
+</div>
+<div class="mt-auto flex flex-col gap-4 items-center mb-4">
+<!-- Multi-Account Switcher -->
+<div class="flex flex-col gap-3 p-1.5 bg-surface-container-low/40 rounded-full border border-outline-variant/10">
+<div class="w-9 h-9 rounded-full overflow-hidden cursor-pointer neon-glow-active transition-all" title="@wegiel">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnQo7K6joahJBE6BLTFv4M2JLo5Of0f8eqQm4Jo4UThm55k1TnZEhGDOOnXi9egKkks5IP0uN3L6OxyF-ghybOqI18RO2llVfza6cuhICflYxN9u0j2uXQzyAm38LTLcA-dIAU8W3RN-SooGCH_ZX1vi3jYX8CKweqTrL4ZJKBVV-OFZU25yPRZNIb1NUUsOcly8RzxFL47r1gaMM8K8gGfR9N7IowmgNKNFdEDCSvp1dt7KXAwbLy1MeeMfFrDXnWdQ">
+</div>
+<div class="w-9 h-9 rounded-full overflow-hidden cursor-pointer opacity-50 hover:opacity-100 transition-all border border-transparent" title="@maslo">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLtDUrVftmP--btRyhtdqvd5a5K1-BQ_MmMo_Sg0GaPOcS-eftMEKIiwGSbcCDHElbspMNJsO85X3VgD_3sIDphWxVedZADpaq1Deh81Eq6EXOY5CgCYg6oS-rccJXcjCSgKOj81ObQhCTLOTQIhzLvlVFykjnBxKPBaUgUGCyySPoF7hRBbYWe_jJboa9P9zca9-5-KF2feuT2lzmhIZph_Yyfbl6D_7fb-QdLwIGE26iGx-pnuC7TC7ic">
+</div>
+</div>
+</div>
+</nav>
+<!-- Main Content Canvas -->
+<main class="ml-[72px] h-screen p-8 flex flex-col relative z-10">
+<!-- Top Search Bar -->
+<header class="flex items-center justify-between mb-8">
+<div class="relative w-full max-w-md">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-lg">search</span>
+<input class="w-full bg-surface-container/20 backdrop-blur-xl border border-outline-variant/20 rounded-full py-2.5 pl-12 pr-6 text-sm focus:ring-1 focus:ring-primary/30 outline-none transition-all placeholder-on-surface-variant/50" placeholder="Szukaj osób..." type="text">
+</div>
+<div class="flex items-center gap-4">
+<span class="text-xs text-on-surface-variant font-medium">Zalogowany jako @wegiel</span>
+<img class="w-10 h-10 rounded-full border border-primary/30 object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnQo7K6joahJBE6BLTFv4M2JLo5Of0f8eqQm4Jo4UThm55k1TnZEhGDOOnXi9egKkks5IP0uN3L6OxyF-ghybOqI18RO2llVfza6cuhICflYxN9u0j2uXQzyAm38LTLcA-dIAU8W3RN-SooGCH_ZX1vi3jYX8CKweqTrL4ZJKBVV-OFZU25yPRZNIb1NUUsOcly8RzxFL47r1gaMM8K8gGfR9N7IowmgNKNFdEDCSvp1dt7KXAwbLy1MeeMfFrDXnWdQ">
+</div>
+</header>
+<!-- Messaging Layout -->
+<div class="flex-1 ultra-glass iridescent-border rounded-[2.5rem] flex overflow-hidden shadow-2xl">
+<!-- Sidebar: Conversation List -->
+<aside class="w-80 border-r border-outline-variant/10 flex flex-col">
+<div class="p-6 border-b border-outline-variant/10">
+<h2 class="text-xs font-bold text-on-surface-variant uppercase tracking-widest">Wiadomości</h2>
+</div>
+<div class="flex-1 overflow-y-auto custom-scrollbar">
+<!-- Active Conversation: @maslo -->
+<div class="flex items-center gap-4 p-5 bg-primary/10 border-l-4 border-primary cursor-pointer transition-all">
+<div class="relative shrink-0">
+<img class="w-12 h-12 rounded-full border border-primary/20 p-0.5" src="https://lh3.googleusercontent.com/aida/AP1WRLtDUrVftmP--btRyhtdqvd5a5K1-BQ_MmMo_Sg0GaPOcS-eftMEKIiwGSbcCDHElbspMNJsO85X3VgD_3sIDphWxVedZADpaq1Deh81Eq6EXOY5CgCYg6oS-rccJXcjCSgKOj81ObQhCTLOTQIhzLvlVFykjnBxKPBaUgUGCyySPoF7hRBbYWe_jJboa9P9zca9-5-KF2feuT2lzmhIZph_Yyfbl6D_7fb-QdLwIGE26iGx-pnuC7TC7ic">
+<div class="absolute bottom-0.5 right-0.5 w-3 h-3 bg-on-background border-2 border-surface-container rounded-full"></div>
+</div>
+<div class="flex-1 min-w-0">
+<div class="flex justify-between items-center mb-0.5">
+<h4 class="text-sm font-bold text-primary">@maslo</h4>
+<span class="text-[10px] text-on-surface-variant">Teraz</span>
+</div>
+<p class="text-xs text-on-surface-variant truncate font-light">Hej, czy widziałeś już nowe zmiany...</p>
+</div>
+</div>
+</div>
+</aside>
+<!-- Chat Window -->
+<section class="flex-1 flex flex-col bg-surface-container/5">
+<!-- Chat Header -->
+<header class="h-20 px-8 flex items-center justify-between border-b border-outline-variant/10">
+<div class="flex items-center gap-4">
+<img class="w-10 h-10 rounded-full border border-primary/20" src="https://lh3.googleusercontent.com/aida/AP1WRLtDUrVftmP--btRyhtdqvd5a5K1-BQ_MmMo_Sg0GaPOcS-eftMEKIiwGSbcCDHElbspMNJsO85X3VgD_3sIDphWxVedZADpaq1Deh81Eq6EXOY5CgCYg6oS-rccJXcjCSgKOj81ObQhCTLOTQIhzLvlVFykjnBxKPBaUgUGCyySPoF7hRBbYWe_jJboa9P9zca9-5-KF2feuT2lzmhIZph_Yyfbl6D_7fb-QdLwIGE26iGx-pnuC7TC7ic">
+<div>
+<h3 class="text-base font-medium text-on-surface">Czat z @maslo</h3>
+<p class="text-[10px] text-on-background flex items-center gap-1.5 opacity-80">
+<span class="w-1.5 h-1.5 bg-on-background rounded-full"></span>
+                                Online
+                            </p>
+</div>
+</div>
+<div class="flex gap-5">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-xl">call</span></button>
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-xl">videocam</span></button>
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-xl">info</span></button>
+</div>
+</header>
+<!-- Messages Content -->
+<div class="flex-1 overflow-y-auto p-10 flex flex-col gap-8 custom-scrollbar">
+<div class="flex justify-center mb-4">
+<span class="px-4 py-1 rounded-full bg-surface-container-high/30 text-[10px] text-on-surface-variant font-bold uppercase tracking-widest backdrop-blur-md">Dzisiaj</span>
+</div>
+<!-- Incoming message -->
+<div class="flex items-end gap-3 max-w-[70%]">
+<img class="w-7 h-7 rounded-full shrink-0" src="https://lh3.googleusercontent.com/aida/AP1WRLtDUrVftmP--btRyhtdqvd5a5K1-BQ_MmMo_Sg0GaPOcS-eftMEKIiwGSbcCDHElbspMNJsO85X3VgD_3sIDphWxVedZADpaq1Deh81Eq6EXOY5CgCYg6oS-rccJXcjCSgKOj81ObQhCTLOTQIhzLvlVFykjnBxKPBaUgUGCyySPoF7hRBbYWe_jJboa9P9zca9-5-KF2feuT2lzmhIZph_Yyfbl6D_7fb-QdLwIGE26iGx-pnuC7TC7ic">
+<div class="bg-surface-container-high/40 backdrop-blur-xl p-4 rounded-3xl rounded-bl-none text-sm leading-relaxed text-on-surface border border-outline-variant/10 shadow-sm">
+                            Hej, czy widziałeś już nowe zmiany w Pluma? Klasyczny wariant Liquid Glass wygląda niesamowicie.
+                            <p class="text-[9px] text-on-surface-variant text-right mt-2 font-mono">14:20</p>
+</div>
+</div>
+<!-- Outgoing message -->
+<div class="flex items-end gap-3 self-end max-w-[70%]">
+<div class="bg-primary/20 backdrop-blur-xl p-4 rounded-3xl rounded-br-none text-sm leading-relaxed text-on-surface border border-primary/20 shadow-sm">
+                            Jeszcze nie, właśnie się loguję. @wegiel wspominał, że jest dużo czyściej teraz.
+                            <p class="text-[9px] text-primary/60 text-right mt-2 font-mono">14:22</p>
+</div>
+</div>
+</div>
+<!-- Chat Input Area -->
+<footer class="p-8">
+<div class="max-w-4xl mx-auto flex items-center gap-4 bg-surface-container-low/40 backdrop-blur-2xl border border-outline-variant/20 rounded-full px-6 py-3.5 focus-within:ring-1 focus-within:ring-primary/20 transition-all">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-2xl">add_circle</span></button>
+<input class="flex-1 bg-transparent border-none focus:ring-0 text-sm text-on-surface placeholder-on-surface-variant/40" placeholder="Napisz wiadomość do @maslo..." type="text">
+<div class="flex items-center gap-4">
+<button class="text-on-surface-variant hover:text-primary transition-colors"><span class="material-symbols-outlined text-2xl">mood</span></button>
+<button class="w-10 h-10 flex items-center justify-center bg-primary text-on-primary rounded-full hover:scale-105 active:scale-95 transition-all shadow-lg shadow-primary/20">
+<span class="material-symbols-outlined text-xl" style="font-variation-settings: 'FILL' 1;">send</span>
+</button>
+</div>
+</div>
+</footer>
+</section>
+</div>
+</main>
+<!-- Floating Action Button (FAB) -->
+<button class="fixed bottom-10 right-10 w-16 h-16 bg-primary text-on-primary rounded-full shadow-[0_10px_40px_rgba(255,184,112,0.3)] flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group">
+<span class="material-symbols-outlined text-[32px] group-hover:rotate-12 transition-transform" style="font-variation-settings: 'FILL' 1;">person_add</span>
+<span class="absolute right-full mr-6 bg-surface-container-high/90 backdrop-blur-xl px-4 py-2 rounded-2xl border border-outline-variant/20 text-xs font-medium opacity-0 group-hover:opacity-100 transition-all translate-x-4 group-hover:translate-x-0 pointer-events-none whitespace-nowrap tracking-wide">Dodaj osobę</span>
+</button>
+<script>
+        // Smooth scaling for interactive elements
+        document.querySelectorAll('button').forEach(btn => {
+            btn.addEventListener('mousedown', () => {
+                btn.style.transform = (btn.style.transform || '') + ' scale(0.96)';
+            });
+            btn.addEventListener('mouseup', () => {
+                btn.style.transform = btn.style.transform.replace(' scale(0.96)', '');
+            });
+            btn.addEventListener('mouseleave', () => {
+                btn.style.transform = btn.style.transform.replace(' scale(0.96)', '');
+            });
+        });
+
+        // Parallax background subtleness
+        document.addEventListener('mousemove', (e) => {
+            const bg = document.querySelector('img[alt="Bliss Background"]');
+            const moveX = (e.clientX / window.innerWidth - 0.5) * 8;
+            const moveY = (e.clientY / window.innerHeight - 0.5) * 8;
+            bg.style.transform = `translate(${moveX}px, ${moveY}px) scale(1.05)`;
+        });
+    </script>
+</body></html>

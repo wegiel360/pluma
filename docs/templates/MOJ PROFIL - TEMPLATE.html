@@ -1,0 +1,326 @@
+<!DOCTYPE html><html class="dark" lang="pl"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&amp;family=Ubuntu+Mono:wght@400;500;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        :root {
+            --glass-bg: rgba(6, 23, 0, 0.35);
+            --glass-border: rgba(255, 255, 255, 0.08);
+            --neon-accent: #ffb870;
+            --iridescent-border: linear-gradient(135deg, rgba(255,184,112,0.2) 0%, rgba(103,218,194,0.1) 50%, rgba(146,207,234,0.1) 100%);
+        }
+        body {
+            background-color: #061700;
+            overflow-x: hidden;
+            font-family: 'Ubuntu', sans-serif;
+        }
+        .floating-glass {
+            background: var(--glass-bg);
+            backdrop-filter: blur(32px);
+            -webkit-backdrop-filter: blur(32px);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+        }
+        .glass-card {
+            background: rgba(12, 37, 0, 0.25);
+            backdrop-filter: blur(24px);
+            -webkit-backdrop-filter: blur(24px);
+            border: 1px solid transparent;
+            background-clip: padding-box;
+            position: relative;
+            border-radius: 2rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass-card::before {
+            content: "";
+            position: absolute;
+            inset: 0;
+            border-radius: inherit;
+            padding: 1px;
+            background: var(--iridescent-border);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+        }
+        .glass-card:hover {
+            background: rgba(12, 37, 0, 0.4);
+            transform: translateY(-4px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.3);
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--neon-accent);
+            border-radius: 10px;
+        }
+        .neon-accent-text {
+            color: var(--neon-accent);
+        }
+        .low-contrast-label {
+            color: rgba(187, 242, 149, 0.6);
+            letter-spacing: 0.02em;
+        }
+    </style>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface-dim": "#061700",
+                    "secondary-fixed": "#85f6de",
+                    "inverse-surface": "#bbf295",
+                    "on-primary-container": "#402200",
+                    "on-primary": "#4a2800",
+                    "error-container": "#93000a",
+                    "on-primary-fixed": "#2d1600",
+                    "surface-tint": "#ffb870",
+                    "on-error-container": "#ffdad6",
+                    "outline": "#a18d7c",
+                    "surface-container-lowest": "#041200",
+                    "on-secondary-fixed": "#00201a",
+                    "secondary": "#67dac2",
+                    "secondary-container": "#21a28d",
+                    "on-surface": "#bbf295",
+                    "tertiary-fixed-dim": "#92cfea",
+                    "tertiary-container": "#5c99b2",
+                    "tertiary": "#92cfea",
+                    "on-error": "#690005",
+                    "inverse-on-surface": "#163800",
+                    "inverse-primary": "#8b5000",
+                    "tertiary-fixed": "#bce9ff",
+                    "error": "#ffb4ab",
+                    "surface-container-highest": "#183d00",
+                    "secondary-fixed-dim": "#67dac2",
+                    "on-secondary-fixed-variant": "#005145",
+                    "on-primary-fixed-variant": "#693c00",
+                    "surface-variant": "#183d00",
+                    "primary-fixed-dim": "#ffb870",
+                    "on-background": "#bbf295",
+                    "on-surface-variant": "#d9c2b0",
+                    "background": "#061700",
+                    "surface-container-low": "#0a2100",
+                    "primary": "#ffb870",
+                    "primary-container": "#d07d12",
+                    "surface-bright": "#1b4200",
+                    "on-tertiary": "#003545",
+                    "outline-variant": "#534436",
+                    "on-tertiary-fixed": "#001f29",
+                    "on-secondary": "#00382f",
+                    "on-tertiary-fixed-variant": "#004d63",
+                    "on-tertiary-container": "#002e3c",
+                    "surface-container-high": "#123100",
+                    "surface-container": "#0c2500",
+                    "on-secondary-container": "#003028",
+                    "primary-fixed": "#ffdcbe",
+                    "surface": "#061700"
+            },
+            "borderRadius": {
+                    "DEFAULT": "1rem",
+                    "lg": "2rem",
+                    "xl": "3rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-mobile": "16px",
+                    "gutter": "16px",
+                    "sidebar-width": "72px",
+                    "margin-desktop": "24px"
+            },
+            "fontFamily": {
+                    "headline-sm": ["Ubuntu"],
+                    "label-md": ["Ubuntu Mono"],
+                    "label-sm": ["Ubuntu Mono"],
+                    "headline-md": ["Ubuntu"],
+                    "body-md": ["Ubuntu"],
+                    "body-lg": ["Ubuntu"],
+                    "body-sm": ["Ubuntu"],
+                    "headline-lg": ["Ubuntu"]
+            }
+          },
+        },
+      }
+    </script>
+</head>
+<body class="bg-surface-dim text-on-surface custom-scrollbar">
+<!-- Background Layer -->
+<div class="fixed inset-0 z-0 overflow-hidden">
+<img alt="Bliss Background" class="w-full h-full object-cover scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBN81yrjMTCKgNJNyVoFp5i77HyQqDIERD9CqNVebZu97qPcN82ucWQen3T5Ag7x8mx_Wtia1etLpyO9djZ-pIqPVPqeTkU1QTc67my-n2uWvwVGqJ1OrK0H7RJGrU332Jw30uAaASbl9_O8Z5gV0aENRLInBYTwkdWb1puLU7OW5emwrVwvuoAhAXvTZrW4gkc46_mPDAPxNrRNO0-45gdccq5wwz1uQY581FddzeKIkg-z-5TeHFnAey9cLHQszAM-Q">
+<div class="absolute inset-0 bg-surface-dim/30"></div>
+</div>
+<!-- SideNavBar (Rail) -->
+<nav class="fixed left-4 top-4 bottom-4 w-[72px] flex flex-col items-center py-8 z-50 floating-glass rounded-full border border-white/10">
+<div class="flex flex-col items-center gap-2 cursor-pointer mb-8">
+<div class="w-10 h-10 flex items-center justify-center">
+<img alt="Pluma Logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuA7ACEsiW8Dnvw9FGjUFh2132D4UM3h3JSShsnmmHdqcicWtD2ki0w6O8HjDiIAYJaTrWF832SFww0X362MX4mQE4xxv7_ivJzegAzPrTv5BtFlfFwScTTA2VT2EoYdb5ZPMQTTmaENax7MD2P_X3oT6ElKG7zPhOfkc-FoEIqatMPfglWu2frf8Z-VecfuRnS-kTwDSLeL2BS_FDUc2PgV0cK6MQEOIASMQkQDtdiAiYKpbqHj9BImyCpj0GM16DWVCg">
+</div>
+</div>
+<div class="flex flex-col gap-6 flex-1">
+<button class="w-12 h-12 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-white/10 hover:text-primary transition-all duration-300 relative group" title="Pulpit">
+<span class="material-symbols-outlined" data-icon="dashboard">dashboard</span>
+<span class="absolute left-full ml-4 px-2 py-1 bg-surface-container-high text-label-sm rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">pulpit</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-full text-on-surface-variant hover:bg-white/10 hover:text-primary transition-all duration-300 relative group" title="Osoby">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="absolute left-full ml-4 px-2 py-1 bg-surface-container-high text-label-sm rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">osoby</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-full text-primary bg-primary/10 transition-all relative group" title="Profil">
+<span class="material-symbols-outlined" data-icon="person" style="font-variation-settings: &quot;FILL&quot; 1;">person</span>
+<span class="absolute left-full ml-4 px-2 py-1 bg-surface-container-high text-label-sm rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">profil</span>
+</button>
+</div>
+<!-- Compact Account Switcher at bottom of rail -->
+<div class="flex flex-col gap-3 pb-2 items-center">
+<div class="relative group cursor-pointer">
+<img class="w-10 h-10 rounded-full border-2 border-primary shadow-sm hover:scale-110 transition-transform" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-ga4puez_KOU8a3aSy-f9MjSPZhUr0g45CYsf2J49f56xLJo86nS0bXmYZQI_P0TqnH1icdOOGAUES3YkQYrM-Q4G8AESTepcn7fQhjNDTQ3_t8WAwYyX8Cpd4uaYkz2Of0KRgEYXBhX_KE-BAh5P5g6Y5Z2aqbVLg_jgWm4KktbWXFImiVBbqwDELfRVcn2Ovuu1fP67jjkHjYp6MuScbbJOQcStx-FQOyKX_QYJEVab5ZgPXC2ddICFd7lsEAfjDA">
+<span class="absolute left-full ml-4 px-2 py-1 bg-surface-container-high text-label-sm rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">@wegiel (aktywne)</span>
+</div>
+<div class="relative group cursor-pointer">
+<img class="w-8 h-8 rounded-full border border-white/20 opacity-60 hover:opacity-100 hover:scale-110 transition-all" src="https://lh3.googleusercontent.com/aida/AP1WRLtDUrVftmP--btRyhtdqvd5a5K1-BQ_MmMo_Sg0GaPOcS-eftMEKIiwGSbcCDHElbspMNJsO85X3VgD_3sIDphWxVedZADpaq1Deh81Eq6EXOY5CgCYg6oS-rccJXcjCSgKOj81ObQhCTLOTQIhzLvlVFykjnBxKPBaUgUGCyySPoF7hRBbYWe_jJboa9P9zca9-5-KF2feuT2lzmhIZph_Yyfbl6D_7fb-QdLwIGE26iGx-pnuC7TC7ic">
+<span class="absolute left-full ml-4 px-2 py-1 bg-surface-container-high text-label-sm rounded-md opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity whitespace-nowrap">przełącz na @maslo</span>
+</div>
+</div>
+</nav>
+<!-- Top Search/Status Bar -->
+<header class="fixed top-4 left-24 right-4 h-16 z-40 flex justify-between items-center px-6 rounded-full floating-glass">
+<div class="flex items-center gap-4 flex-1">
+<div class="relative w-full max-w-sm">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">search</span>
+<input class="w-full bg-white/5 border-none rounded-full py-2 pl-12 pr-4 text-body-md focus:ring-1 focus:ring-primary/30 outline-none transition-all placeholder:text-on-surface-variant/50" placeholder="szukaj..." type="text">
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-[20px]">notifications</span>
+</button>
+<button class="w-10 h-10 flex items-center justify-center rounded-full text-on-surface-variant hover:text-primary hover:bg-white/5 transition-colors">
+<span class="material-symbols-outlined text-[20px]">settings</span>
+</button>
+<div class="h-6 w-px bg-white/10 mx-2"></div>
+<div class="flex items-center gap-3">
+<p class="font-label-sm low-contrast-label hidden md:block">@wegiel</p>
+<div class="w-8 h-8 rounded-full border border-primary/20 overflow-hidden">
+<img class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC-ga4puez_KOU8a3aSy-f9MjSPZhUr0g45CYsf2J49f56xLJo86nS0bXmYZQI_P0TqnH1icdOOGAUES3YkQYrM-Q4G8AESTepcn7fQhjNDTQ3_t8WAwYyX8Cpd4uaYkz2Of0KRgEYXBhX_KE-BAh5P5g6Y5Z2aqbVLg_jgWm4KktbWXFImiVBbqwDELfRVcn2Ovuu1fP67jjkHjYp6MuScbbJOQcStx-FQOyKX_QYJEVab5ZgPXC2ddICFd7lsEAfjDA">
+</div>
+</div>
+</div>
+</header>
+<!-- Main Content Area -->
+<main class="flex items-center justify-center min-h-screen w-full relative z-10 overflow-y-auto custom-scrollbar">
+<div class="max-w-6xl mx-auto space-y-8">
+<!-- Profile Header Section -->
+<section class="relative">
+<!-- 21:9 Banner -->
+<div class="w-full aspect-[21/8] rounded-[3rem] overflow-hidden floating-glass border-white/5 relative group">
+<img class="w-full h-full object-cover grayscale-[0.2]" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAD1T4q05Hjbo745ww1lZfuWXk3h6HXLe-PkRVXQDz3a8zTyE1IZ3nfh9BnFDs9gfXjbWGx7sO8-7_SuwZ6-b1fG1rMDNCl0A22o96-_Y2iZNrZQjQeW7Wrpw7Ol1bs0GOMX9ZKNrCw3O8eLUE_ejlOq_G8W1Jfyh73vt_lXAvhBerGJ83W-YmIk9QqqzUoVSV4HA-G-UUEiBwEs07sUU1Rofiy22vM_b-34dpISTkndh6XynT907M-Vcj9q0FKr3s8hw" style="object-position: 50% 20%;">
+<!-- Gradient Overlay to blend banner into glass -->
+<div class="absolute inset-0 bg-gradient-to-t from-surface-dim/90 via-surface-dim/20 to-transparent"></div>
+<div class="absolute inset-0 bg-primary/5"></div>
+<button class="absolute top-6 right-6 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-label-md flex items-center gap-2 hover:bg-primary hover:text-on-primary transition-all lowercase">
+<span class="material-symbols-outlined text-[18px]">edit</span>
+                    edytuj tło
+                </button>
+</div>
+<!-- Identity Info -->
+<div class="flex flex-col md:flex-row items-end gap-6 -mt-16 px-12 relative z-20">
+<div class="relative">
+<div class="w-36 h-36 rounded-full border-8 border-surface-dim/40 shadow-2xl overflow-hidden floating-glass p-0.5">
+<img class="w-full h-full rounded-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCQWzVBZjTWJhad8MXhKt2gpO8bwNFFupsHOIFAVTVJuB6SHl74P_B-AlLzEtNCZR-qt23NUmbGEA6A3w1NFPpIlHj-2rL9wRbJVOicE6DHV_U0kQ-uRN79R_aV9Y3ggVrHVHNTKWLNUSd9GcxgrM3FXstHpd1CMcUWnmy5cGCy0pQ9srRISUHsFEeiy4gEpgPCv7Rs2EEjkADIUn2B1rafxvvuGMs7sL_CM1tkZOaoW3XDn9jStD1hsf3fL_0lUbt-NA">
+</div>
+</div>
+<div class="flex-1 pb-4">
+<h1 class="font-headline-lg text-4xl text-on-surface neon-accent-text tracking-tight lowercase">@wegiel</h1>
+<p class="font-body-md low-contrast-label lowercase">dołączył w lipcu 2026</p>
+</div>
+<div class="flex gap-4 pb-4">
+<button class="px-8 py-3 rounded-full bg-primary text-on-primary font-medium transition-all hover:shadow-lg hover:shadow-primary/20 active:scale-95 lowercase">
+                        edytuj profil
+                    </button>
+<button class="w-12 h-12 rounded-full border border-white/10 bg-white/5 flex items-center justify-center hover:bg-white/10 transition-colors">
+<span class="material-symbols-outlined text-on-surface-variant">share</span>
+</button>
+</div>
+</div>
+</section>
+<!-- Content Grid -->
+<div class="grid grid-cols-1 lg:grid-cols-12 gap-8 px-4">
+<!-- Bio Column -->
+<div class="lg:col-span-4 space-y-8">
+<div class="glass-card p-8">
+<div class="flex items-center gap-3 mb-6">
+<span class="material-symbols-outlined text-primary/60">fingerprint</span>
+<h2 class="text-label-md low-contrast-label lowercase">o mnie</h2>
+</div>
+<p class="font-body-lg text-on-surface leading-relaxed">i use arch btw</p>
+</div>
+</div>
+<!-- Customization Column -->
+<div class="lg:col-span-8">
+<div class="glass-card p-10 overflow-hidden relative">
+<div class="absolute -top-12 -right-12 w-48 h-48 bg-primary/5 blur-[80px] rounded-full"></div>
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-primary/60">palette</span>
+<h2 class="text-label-md low-contrast-label lowercase">personalizacja wyglądu</h2>
+</div>
+<p class="font-body-md text-on-surface-variant/80 mb-10 lowercase">wybierz swój unikalny kolor akcentu, który odmieni interfejs.</p>
+<div class="grid grid-cols-2 sm:grid-cols-4 md:grid-cols-6 gap-6">
+<!-- Color Options -->
+<button class="flex flex-col items-center gap-4 group">
+<div class="w-12 h-12 rounded-full bg-primary shadow-lg shadow-primary/20 ring-4 ring-primary/30 transition-transform group-hover:scale-110"></div>
+<span class="text-label-sm low-contrast-label lowercase">bursztyn</span>
+</button>
+<button class="flex flex-col items-center gap-4 group">
+<div class="w-12 h-12 rounded-full bg-secondary border border-white/10 transition-all group-hover:scale-110"></div>
+<span class="text-label-sm low-contrast-label lowercase">morska</span>
+</button>
+<button class="flex flex-col items-center gap-4 group">
+<div class="w-12 h-12 rounded-full bg-tertiary border border-white/10 transition-all group-hover:scale-110"></div>
+<span class="text-label-sm low-contrast-label lowercase">błękit</span>
+</button>
+<button class="flex flex-col items-center gap-4 group">
+<div class="w-12 h-12 rounded-full bg-gradient-to-tr from-primary to-secondary border border-white/10 transition-all group-hover:scale-110"></div>
+<span class="text-label-sm low-contrast-label lowercase">płynny</span>
+</button>
+<button class="flex flex-col items-center gap-4 group">
+<div class="w-12 h-12 rounded-full bg-on-surface border border-white/10 transition-all group-hover:scale-110"></div>
+<span class="text-label-sm low-contrast-label lowercase">grafit</span>
+</button>
+<button class="flex flex-col items-center gap-4 group">
+<div class="w-12 h-12 rounded-full border border-dashed border-white/30 flex items-center justify-center transition-all group-hover:scale-110">
+<span class="material-symbols-outlined text-sm text-white/40">add</span>
+</div>
+<span class="text-label-sm low-contrast-label lowercase">własny</span>
+</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Floating Action Button -->
+<button class="fixed bottom-10 right-10 w-16 h-16 bg-primary text-on-primary rounded-full shadow-2xl shadow-primary/30 flex items-center justify-center hover:scale-110 active:scale-95 transition-all z-50 group">
+<span class="material-symbols-outlined text-[32px] group-hover:rotate-45 transition-transform">edit_note</span>
+<span class="absolute right-full mr-6 bg-surface-container-high/90 backdrop-blur-md px-4 py-2 rounded-full border border-white/10 text-label-md opacity-0 group-hover:opacity-100 transition-all whitespace-nowrap pointer-events-none lowercase">nowy wpis</span>
+</button>
+<script>
+    // Minimal interactivity for floating effects
+    document.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('mousedown', () => {
+            btn.style.transform = 'scale(0.96)';
+        });
+        btn.addEventListener('mouseup', () => {
+            btn.style.transform = '';
+        });
+    });
+</script>
+
+
+</body></html>

@@ -1,15 +1,24 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 
-import 'api/api_client.dart';
-import 'api/auth_api.dart';
+import 'api/api.dart';
+import 'api/api_factory.dart';
 import 'api/models.dart';
 import 'api/saved_accounts.dart';
-import 'api/users_api.dart';
+import 'api/weather_api.dart';
 import 'screens/login_screen.dart';
 import 'screens/home_shell.dart';
 import 'theme/pluma_theme.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  if (kIsWeb) {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+  }
   runApp(const PlumaApp());
 }
 
@@ -29,9 +38,8 @@ class PlumaApp extends StatelessWidget {
 
 /// Shared application services passed down to screens.
 class AppServices {
-  final ApiClient api = ApiClient();
-  late final AuthApi auth = AuthApi(api);
-  late final UsersApi users = UsersApi(api);
+  final PlumaApi api = createApi();
+  final WeatherApi weatherApi = WeatherApi();
 
   static const Color defaultAccent = PlumaColors.primary;
 }
@@ -68,11 +76,9 @@ class _RootScreenState extends State<RootScreen> {
 
   Future<void> _loadUsers() async {
     try {
-      final users = await _services.users.getAllUsers();
+      final users = await _services.api.getAllUsers();
       if (mounted) setState(() => _allUsers = users);
-    } catch (_) {
-      // ignore polling failures
-    }
+    } catch (_) {}
   }
 
   void _onUserUpdated(UserProfile updated) {
@@ -96,6 +102,7 @@ class _RootScreenState extends State<RootScreen> {
         allUsers: _allUsers,
         onUserUpdated: _onUserUpdated,
         onLogout: () {
+          _services.api.logout();
           Navigator.of(context).pushAndRemoveUntil(
             MaterialPageRoute(builder: (_) => const LoginScreen()),
             (route) => false,

@@ -1,0 +1,234 @@
+<!DOCTYPE html><html class="dark" lang="pl"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<style>
+        :root {
+            /* Liquid Glass v3 Tokens */
+            --neon: #98FF98;
+            --amber: #CC7A0D;
+            --glassBg: rgba(24, 30, 44, 0.65);
+            --glassBorder: #2A3040;
+            --bg0: #080A10;
+            --textMain: #F2F4F8;
+            --textMuted: #9A9EA8;
+            --radius-std: 20px;
+        }
+        body {
+            background-color: var(--bg0);
+            color: var(--textMain);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+        .liquid-glass-card {
+            background: var(--glassBg);
+            backdrop-filter: blur(32px);
+            -webkit-backdrop-filter: blur(32px);
+            border: 1px solid var(--glassBorder);
+            border-radius: var(--radius-std);
+            position: relative;
+        }
+        /* Iridescent Border Effect */
+        .iridescent-border::after {
+            content: "";
+            position: absolute;
+            inset: -1px;
+            border-radius: inherit;
+            padding: 1px;
+            background: linear-gradient(var(--angle, 135deg), 
+                #ffb870, #ff70b8, #b870ff, #70b8ff, #70ffb8, #b8ff70, #ffb870);
+            -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+            -webkit-mask-composite: xor;
+            mask-composite: exclude;
+            pointer-events: none;
+            animation: rotate-hue 6s linear infinite;
+        }
+        @keyframes rotate-hue {
+            to { filter: hue-rotate(360deg); }
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: var(--glassBorder);
+            border-radius: 10px;
+        }
+        .neon-glow {
+            box-shadow: 0 0 15px rgba(152, 255, 152, 0.3);
+            border-color: var(--neon) !important;
+        }
+        .avatar-compact {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            border: 2px solid var(--glassBorder);
+            transition: all 0.3s ease;
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        primary: "#98FF98",
+                        surface: "#181E2C",
+                    },
+                    borderRadius: {
+                        DEFAULT: "20px",
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="custom-scrollbar">
+<!-- Background Layer -->
+<div class="fixed inset-0 z-0">
+<img alt="Bliss" class="w-full h-full object-cover blur-[6px] scale-105" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxRN_g8_TKY_fVjvtzbS4A7ErtVafXSU_9xndOhOu-G2pexyc5AU_Uk2LcWnuBFQ02l70EptAUgPxr73GP_HXl3RuB_pWcaLDV1-CO04lBoqHTXzINCEy5neZQB_58g6E44y9tjCQch_04AYxe22hRNHSrbp1Rjw6QLnQcSwR1GmFIPB2NKv_jPOTeIXvZiRv8ADr6iTyj_ow5g1BxbmeZIrmw72NHNhjmUgkfQwobf_k373dJi8xuMXANGClbtc33iw">
+<div class="absolute inset-0 bg-black/20"></div>
+</div>
+<!-- Sidebar Navigation (72px) -->
+<aside class="fixed left-0 top-0 h-screen w-[72px] flex flex-col items-center py-6 z-50 backdrop-blur-xl border-r border-white/5 bg-black/10">
+<!-- Top: Logo -->
+<div class="mb-10">
+<img alt="Pluma" class="w-10 h-10 object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD8yXABeEyZlhTf-ed0YASR5eH8vZT7qm1YjkUvntCD3E3NBRcvAGI2oKtmxepH1xBRkDjkt2DNzWfYwtuRH17ToBmcxF8TV9KwPWJU7EZo3Hqx9p5tgOfBiWr5i56Y76bcB3PdmxIBzY4rafs5ZQJMY-KIetaeXxxI-b8F5UoHhGbJtyQLbLSX-erMcDg8DLddeWQehDP7F60X6ENTQTINVuzLCN3A4SQze4k7gGjmK_VPIGcICgj-NWa3aU7gtOgfIw">
+</div>
+<!-- Middle: Primary Navigation -->
+<nav class="flex flex-col gap-6">
+<button class="w-12 h-12 flex items-center justify-center rounded-[20px] text-primary bg-primary/10 transition-all" title="Pulpit">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-[20px] text-[#9A9EA8] hover:bg-white/5 transition-all" title="Osoby">
+<span class="material-symbols-outlined">forum</span>
+</button>
+<button class="w-12 h-12 flex items-center justify-center rounded-[20px] text-[#9A9EA8] hover:bg-white/5 transition-all" title="Profil">
+<span class="material-symbols-outlined">person</span>
+</button>
+</nav>
+<!-- Bottom: Settings & Account Switcher -->
+<div class="mt-auto flex flex-col items-center gap-6">
+<button class="text-[#9A9EA8] hover:text-primary transition-colors">
+<span class="material-symbols-outlined">settings</span>
+</button>
+<div class="flex flex-col gap-3 pb-2">
+<div class="relative group cursor-pointer">
+<img alt="@wegiel" class="avatar-compact neon-glow object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAMsa1s-NZO6jh3dihxhKtQV1XWkK_7SzhbOr6J8-FdAm1MRmXEPZGylnr7LjdQ1vOSBI8WVsZZ7Ov4h0OI1Tuv6R7t-HdIZ7s_TmzPyOx07DFQvWO_Zu0LtUiOR5oeO7NMnRJtR6Y2JU0zaTj6ylajqRRLy_d4y3BHeE9qQBHOR-kTKLu8obnT4twnX_UfxeP2ZiUry_bgELoZ_L3fn69z8Mfa9WFbXYsGxvpD31pZNOdKu8Rz-wfpDYJ6M6F6mhx53A">
+<div class="absolute left-14 top-1/2 -translate-y-1/2 px-2 py-1 bg-black/80 rounded text-[10px] text-[#F2F4F8] opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity pointer-events-none">@wegiel</div>
+</div>
+<div class="relative group cursor-pointer opacity-50 hover:opacity-100 transition-opacity">
+<img alt="@maslo" class="avatar-compact object-cover" src="https://lh3.googleusercontent.com/aida/AP1WRLtDUrVftmP--btRyhtdqvd5a5K1-BQ_MmMo_Sg0GaPOcS-eftMEKIiwGSbcCDHElbspMNJsO85X3VgD_3sIDphWxVedZADpaq1Deh81Eq6EXOY5CgCYg6oS-rccJXcjCSgKOj81ObQhCTLOTQIhzLvlVFykjnBxKPBaUgUGCyySPoF7hRBbYWe_jJboa9P9zca9-5-KF2feuT2lzmhIZph_Yyfbl6D_7fb-QdLwIGE26iGx-pnuC7TC7ic">
+<div class="absolute left-14 top-1/2 -translate-y-1/2 px-2 py-1 bg-black/80 rounded text-[10px] text-[#F2F4F8] opacity-0 group-hover:opacity-100 whitespace-nowrap transition-opacity pointer-events-none">@maslo</div>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="ml-[72px] min-h-screen flex items-center justify-center p-8 relative z-10">
+<div class="w-full max-w-4xl">
+<!-- Unified GlassCard Module -->
+<div class="liquid-glass-card iridescent-border p-10 overflow-hidden">
+<div class="relative z-10 flex flex-col md:flex-row justify-between items-start gap-12">
+<!-- Weather Column -->
+<div class="flex flex-col gap-6">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-primary">cloud</span>
+<h2 class="text-sm font-medium tracking-wider text-[#9A9EA8]">Pogoda</h2>
+</div>
+<div class="flex items-center gap-2 text-[#9A9EA8]">
+<span class="material-symbols-outlined text-sm">location_on</span>
+<span class="text-sm">Warszawa, Polska</span>
+</div>
+<div class="flex items-center gap-10 mt-2">
+<span class="text-8xl font-bold text-[#F2F4F8] tracking-tighter">22°</span>
+<div class="flex flex-col gap-1">
+<div class="flex items-center gap-2 text-primary">
+<span class="material-symbols-outlined text-xs">arrow_upward</span>
+<span class="text-lg font-semibold">24°</span>
+</div>
+<div class="flex items-center gap-2 text-[#9A9EA8]">
+<span class="material-symbols-outlined text-xs">arrow_downward</span>
+<span class="text-lg">16°</span>
+</div>
+</div>
+</div>
+<div class="px-4 py-1.5 rounded-full bg-white/5 border border-white/10 text-[#F2F4F8] text-xs font-medium w-fit">
+                            Częściowe zachmurzenie
+                        </div>
+</div>
+<!-- Digital Clock Column -->
+<div class="flex flex-col md:items-end text-left md:text-right gap-1">
+<span class="text-7xl font-bold text-primary tabular-nums tracking-tighter" id="live-time">16:05:09</span>
+<p class="text-2xl font-semibold text-[#F2F4F8]" id="live-day">Poniedziałek</p>
+<p class="text-sm text-[#9A9EA8] tracking-widest" id="live-date">3 sierpnia 2026</p>
+</div>
+</div>
+<!-- Hourly Forecast Divider -->
+<div class="mt-12 pt-10 border-t border-white/5">
+<p class="text-[11px] font-medium text-[#9A9EA8] uppercase tracking-widest mb-6">Prognoza godzinowa</p>
+<div class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4">
+<div class="flex flex-col items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/30 transition-all cursor-default group">
+<span class="text-xs text-[#9A9EA8]">13:00</span>
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">sunny</span>
+<span class="font-bold text-[#F2F4F8]">23°</span>
+</div>
+<div class="flex flex-col items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/30 transition-all cursor-default group">
+<span class="text-xs text-[#9A9EA8]">14:00</span>
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">sunny</span>
+<span class="font-bold text-[#F2F4F8]">24°</span>
+</div>
+<div class="flex flex-col items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/30 transition-all cursor-default group">
+<span class="text-xs text-[#9A9EA8]">15:00</span>
+<span class="material-symbols-outlined text-primary group-hover:scale-110 transition-transform">partly_cloudy_day</span>
+<span class="font-bold text-[#F2F4F8]">24°</span>
+</div>
+<div class="flex flex-col items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/30 transition-all cursor-default group">
+<span class="text-xs text-[#9A9EA8]">16:00</span>
+<span class="material-symbols-outlined text-[#9A9EA8] group-hover:scale-110 transition-transform">cloud</span>
+<span class="font-bold text-[#F2F4F8]">22°</span>
+</div>
+<div class="flex flex-col items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/30 transition-all cursor-default group">
+<span class="text-xs text-[#9A9EA8]">17:00</span>
+<span class="material-symbols-outlined text-[#9A9EA8] group-hover:scale-110 transition-transform">cloud</span>
+<span class="font-bold text-[#F2F4F8]">21°</span>
+</div>
+<div class="flex flex-col items-center gap-4 p-4 rounded-2xl bg-white/5 border border-white/5 hover:border-primary/30 transition-all cursor-default group">
+<span class="text-xs text-[#9A9EA8]">18:00</span>
+<span class="material-symbols-outlined text-primary/60 group-hover:scale-110 transition-transform">rainy</span>
+<span class="font-bold text-[#F2F4F8]">19°</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<script>
+        function updateClock() {
+            const now = new Date();
+            const hours = String(now.getHours()).padStart(2, '0');
+            const minutes = String(now.getMinutes()).padStart(2, '0');
+            const seconds = String(now.getSeconds()).padStart(2, '0');
+            
+            const timeEl = document.getElementById('live-time');
+            if (timeEl) timeEl.textContent = `${hours}:${minutes}:${seconds}`;
+
+            const days = ['Niedziela', 'Poniedziałek', 'Wtorek', 'Środa', 'Czwartek', 'Piątek', 'Sobota'];
+            const months = ['stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca', 'lipca', 'sierpnia', 'września', 'października', 'listopada', 'grudnia'];
+            
+            const dayEl = document.getElementById('live-day');
+            const dateEl = document.getElementById('live-date');
+            
+            if (dayEl) dayEl.textContent = days[now.getDay()];
+            if (dateEl) dateEl.textContent = `${now.getDate()} ${months[now.getMonth()]} ${now.getFullYear()}`;
+        }
+
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+</body></html>

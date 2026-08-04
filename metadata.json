@@ -1,0 +1,6 @@
+{
+  "name": "Pluma",
+  "description": "Pluma - Liquid Glass Messenger & Dashboard App",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

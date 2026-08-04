@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 
-import '../api/api_client.dart';
 import '../api/models.dart';
 import '../api/saved_accounts.dart';
 import '../theme/glass_components.dart';
@@ -64,16 +63,16 @@ class _LoginScreenState extends State<LoginScreen> {
 
     try {
       final user = _registerMode
-          ? await _services.auth.register(username, password)
-          : await _services.auth.login(username, password);
+          ? await _services.api.register(username, password)
+          : await _services.api.login(username, password);
       await SavedAccounts.save(user);
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
         MaterialPageRoute(builder: (_) => RootScreen(user: user)),
         (route) => false,
       );
-    } on ApiException catch (e) {
-      setState(() => _error = e.message);
+    } on Exception catch (e) {
+      setState(() => _error = e.toString().replaceAll('Exception: ', ''));
     } catch (e) {
       setState(() => _error = 'Blad podczas logowania/rejestracji');
     } finally {
@@ -87,7 +86,7 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
     try {
-      final user = await _services.users.getOrCreateUser(accountUsername);
+      final user = await _services.api.getOrCreateUser(accountUsername);
       await SavedAccounts.save(user);
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
@@ -122,7 +121,6 @@ class _LoginScreenState extends State<LoginScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    // Logo
                     Column(
                       children: [
                         Image.asset(

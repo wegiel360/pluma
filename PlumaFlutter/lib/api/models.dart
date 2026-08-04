@@ -98,4 +98,15 @@ class Message {
       videoUrl: videoUrl,
     );
   }
+
+  Map<String, dynamic> toJson() => {
+        'id': id,
+        'sender': sender,
+        'recipient': recipient,
+        'text': text,
+        'timestamp': timestamp,
+        'createdAt': createdAt,
+        'imageUrl': imageUrl,
+        'videoUrl': videoUrl,
+      };
 }

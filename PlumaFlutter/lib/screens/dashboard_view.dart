@@ -52,7 +52,7 @@ class _DashboardViewState extends State<DashboardView> {
 
   Future<void> _fetchWeather() async {
     try {
-      final w = await widget.services.api.weatherApi.getWeather(
+      final w = await widget.services.weatherApi.getWeather(
         lat: _location.latitude,
         lon: _location.longitude,
       );
@@ -70,7 +70,7 @@ class _DashboardViewState extends State<DashboardView> {
     }
     setState(() => _searching = true);
     try {
-      final r = await widget.services.api.weatherApi.searchCities(query);
+      final r = await widget.services.weatherApi.searchCities(query);
       if (mounted) setState(() => _results = r);
     } catch (_) {
       if (mounted) setState(() => _results = []);

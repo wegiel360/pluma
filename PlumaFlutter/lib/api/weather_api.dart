@@ -1,4 +1,5 @@
-import 'api_client.dart';
+import 'dart:convert';
+import 'package:http/http.dart' as http;
 
 class CityResult {
   final String name;
@@ -72,26 +73,84 @@ class WeatherData {
 }
 
 class WeatherApi {
-  final ApiClient _client;
-
-  WeatherApi(this._client);
-
   Future<WeatherData> getWeather({double? lat, double? lon, String? city}) async {
-    final params = <String>[];
-    if (lat != null) params.add('lat=$lat');
-    if (lon != null) params.add('lon=$lon');
-    if (city != null) params.add('city=${Uri.encodeComponent(city)}');
-    final suffix = params.isEmpty ? '' : '?${params.join('&')}';
-    final res = await _client.get('/weather$suffix');
-    return WeatherData.fromJson(res);
+    final latitude = lat ?? 49.9542;
+    final longitude = lon ?? 18.5833;
+
+    final currentUri = Uri.parse(
+      'https://api.open-meteo.com/v1/forecast'
+      '?latitude=$latitude&longitude=$longitude'
+      '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,surface_pressure'
+      '&daily=temperature_2m_max,temperature_2m_min'
+      '&timezone=auto&forecast_days=1',
+    );
+
+    final res = await http.get(currentUri).timeout(const Duration(seconds: 10));
+    if (res.statusCode != 200) throw Exception('Bledne dane pogodowe');
+
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
+    final current = data['current'] as Map<String, dynamic>? ?? {};
+    final daily = data['daily'] as Map<String, dynamic>? ?? {};
+
+    final code = (current['weather_code'] ?? 0) as int;
+    final condition = _conditionFromCode(code);
+    final icon = _iconFromCode(code);
+
+    final tempsMax = daily['temperature_2m_max'] as List?;
+    final tempsMin = daily['temperature_2m_min'] as List?;
+
+    return WeatherData(
+      cityName: city ?? 'Jastrzebie-Zdroj',
+      temp: (current['temperature_2m'] ?? 20).round(),
+      high: tempsMax != null && tempsMax.isNotEmpty
+          ? (tempsMax[0] as num).round()
+          : 24,
+      low: tempsMin != null && tempsMin.isNotEmpty
+          ? (tempsMin[0] as num).round()
+          : 16,
+      condition: condition,
+      humidity: (current['relative_humidity_2m'] ?? 50).round(),
+      windSpeed: (current['wind_speed_10m'] ?? 10).round(),
+      pressure: (current['surface_pressure'] ?? 1013).round(),
+      icon: icon,
+    );
   }
 
   Future<List<CityResult>> searchCities(String query) async {
     final q = Uri.encodeComponent(query.trim());
-    final res = await _client.get('/weather/search?q=$q');
-    final list = (res['results'] as List? ?? []);
-    return list
-        .map((c) => CityResult.fromJson(c as Map<String, dynamic>))
-        .toList();
+    final uri = Uri.parse(
+      'https://geocoding-api.open-meteo.com/v1/search?name=$q&count=8&language=pl&format=json',
+    );
+    final res = await http.get(uri).timeout(const Duration(seconds: 8));
+    if (res.statusCode != 200) return [];
+
+    final data = jsonDecode(res.body) as Map<String, dynamic>;
+    final results = data['results'] as List? ?? [];
+    return results.map((c) => CityResult.fromJson(c as Map<String, dynamic>)).toList();
+  }
+
+  String _conditionFromCode(int code) {
+    if (code == 0) return 'Slonecznie';
+    if (code <= 3) return 'Czesciowe chmury';
+    if (code <= 49) return 'Mgla';
+    if (code <= 59) return 'Mzawka';
+    if (code <= 69) return 'Deszcz';
+    if (code <= 79) return 'Snieg';
+    if (code <= 82) return 'Przelotny deszcz';
+    if (code <= 86) return 'Snieg przelotny';
+    if (code <= 99) return 'Burza';
+    return 'Nieznana';
+  }
+
+  String _iconFromCode(int code) {
+    if (code == 0) return 'sunny';
+    if (code <= 3) return 'cloud';
+    if (code <= 59) return 'foggy';
+    if (code <= 69) return 'rainy';
+    if (code <= 79) return 'ac_unit';
+    if (code <= 82) return 'rainy';
+    if (code <= 86) return 'ac_unit';
+    if (code <= 99) return 'thunderstorm';
+    return 'cloud';
   }
 }

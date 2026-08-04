@@ -1,0 +1,301 @@
+<!DOCTYPE html><html class="dark" lang="pl"><head>
+<meta charset="utf-8">
+<meta content="width=device-width, initial-scale=1.0" name="viewport">
+<title>Pluma - Logowanie</title>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet">
+<!-- Google Fonts: Ubuntu and Ubuntu Mono -->
+<link href="https://fonts.googleapis.com/css2?family=Ubuntu:wght@400;500;700&amp;family=Ubuntu+Mono:wght@400;700&amp;display=swap" rel="stylesheet">
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<script id="tailwind-config">
+    tailwind.config = {
+      darkMode: "class",
+      theme: {
+        extend: {
+          "colors": {
+            "neon": "#98FF98",
+            "amber": "#CC7A0D",
+            "glassBg": "rgba(24, 30, 44, 0.65)",
+            "glassBorder": "#2A3040",
+            "bg0": "#080A10",
+            "textMain": "#F2F4F8",
+            "textMuted": "#9A9EA8",
+            "on-error": "#690005",
+            "on-primary": "#003916",
+            "tertiary-container": "#5c99b2",
+            "on-tertiary": "#003545",
+            "tertiary-fixed": "#bce9ff",
+            "tertiary": "#92cfea",
+            "on-primary-fixed": "#002108",
+            "inverse-primary": "#006d31",
+            "outline": "#a18d7c",
+            "surface-bright": "#1b4200",
+            "on-surface": "#F2F4F8",
+            "on-background": "#F2F4F8",
+            "on-primary-container": "#002108",
+            "on-secondary-container": "#003028",
+            "on-secondary": "#00382f",
+            "secondary-fixed-dim": "#67dac2",
+            "on-surface-variant": "#9A9EA8",
+            "outline-variant": "#2A3040",
+            "on-secondary-fixed": "#00201a",
+            "tertiary-fixed-dim": "#92cfea",
+            "surface-container-low": "#0a2100",
+            "surface-container-high": "#123100",
+            "on-secondary-fixed-variant": "#005145",
+            "error": "#ffb4ab",
+            "primary-container": "#98FF98",
+            "on-tertiary-fixed": "#001f29",
+            "primary": "#98FF98",
+            "secondary-container": "#21a28d",
+            "inverse-on-surface": "#080A10",
+            "background": "#080A10",
+            "on-tertiary-fixed-variant": "#004d63",
+            "secondary": "#67dac2",
+            "on-primary-fixed-variant": "#005225",
+            "surface-container-lowest": "#041200",
+            "secondary-fixed": "#85f6de",
+            "surface-container-highest": "#183d00",
+            "surface-tint": "#98FF98",
+            "inverse-surface": "#F2F4F8",
+            "surface": "#080A10",
+            "on-tertiary-container": "#002e3c",
+            "primary-fixed-dim": "#98FF98",
+            "surface-variant": "#183d00",
+            "on-error-container": "#ffdad6",
+            "surface-container": "#0c2500",
+            "primary-fixed": "#b4ffb4",
+            "error-container": "#93000a",
+            "surface-dim": "#080A10"
+          },
+          "borderRadius": {
+            "DEFAULT": "1rem",
+            "lg": "2rem",
+            "xl": "3rem",
+            "full": "9999px"
+          },
+          "fontFamily": {
+            "label-sm": ["Ubuntu Mono"],
+            "label-md": ["Ubuntu Mono"],
+            "body-sm": ["Ubuntu"],
+            "body-lg": ["Ubuntu"],
+            "body-md": ["Ubuntu"],
+            "headline-sm": ["Ubuntu"],
+            "headline-lg": ["Ubuntu"],
+            "headline-md": ["Ubuntu"]
+          },
+          "fontSize": {
+            "label-sm": ["10px", {"lineHeight": "14px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+            "label-md": ["12px", {"lineHeight": "16px", "letterSpacing": "0.5px", "fontWeight": "500"}],
+            "body-sm": ["13px", {"lineHeight": "18px", "fontWeight": "400"}],
+            "body-lg": ["16px", {"lineHeight": "24px", "fontWeight": "400"}],
+            "body-md": ["14px", {"lineHeight": "20px", "fontWeight": "400"}],
+            "headline-sm": ["18px", {"lineHeight": "24px", "fontWeight": "600"}],
+            "headline-lg": ["32px", {"lineHeight": "40px", "fontWeight": "700"}],
+            "headline-md": ["24px", {"lineHeight": "32px", "fontWeight": "700"}]
+          }
+        }
+      }
+    };
+  </script>
+<style>
+    body {
+      background-color: #080A10;
+      overflow: hidden;
+      margin: 0;
+      height: 100vh;
+      width: 100vw;
+    }
+
+    .bliss-bg {
+      position: fixed;
+      inset: 0;
+      background-image: url('https://lh3.googleusercontent.com/aida-public/AB6AXuAhwkoeveJW1fjHB8ncpSpTvT0GYb7krfNm32bb8RnPTNvYxGHnVuWk9s-oFjRa5mhFEV7kMhD3o8G9JgDFeQiBOPl3SreqGpd4XbZ1p1wSaO84GTe-7Wy9bcSl_gA5w2X4LdSMW7EBnOLghke06iueKrDXaBS7byYZPz27QUWJDsqJoQPuHA_GuzGDwaznuh80Wby0LUHBzaLWSbmRYWMb84enVzAQ8pABSq_CVSpD7xUb-Tp22O53bnz2lveiUf4acw');
+      background-size: cover;
+      background-position: center;
+      filter: brightness(0.6);
+      z-index: -1;
+    }
+
+    .glass-card {
+      background: rgba(24, 30, 44, 0.65);
+      backdrop-filter: blur(32px) saturate(180%);
+      -webkit-backdrop-filter: blur(32px) saturate(180%);
+      position: relative;
+      overflow: hidden;
+      border: 1px solid transparent;
+    }
+
+    /* Iridescent Border Gradient */
+    .iridescent-border {
+      position: relative;
+    }
+    
+    .iridescent-border::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 20px;
+      padding: 1px;
+      background: linear-gradient(135deg, 
+        #ff0000, #ff7f00, #ffff00, #00ff00, 
+        #0000ff, #4b0082, #8b00ff, #ff0000);
+      background-size: 400% 400%;
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+      mask-composite: exclude;
+      animation: iridescent 10s linear infinite;
+      pointer-events: none;
+    }
+
+    @keyframes iridescent {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+
+    .neon-button {
+      background: #98FF98;
+      color: #003916;
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .neon-button:hover {
+      box-shadow: 0 0 20px rgba(152, 255, 152, 0.4);
+      transform: translateY(-1px);
+    }
+
+    .neon-button:active {
+      transform: scale(0.98);
+    }
+
+    .input-glass {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid rgba(152, 255, 152, 0.1);
+      transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    .input-glass:focus {
+      border-color: rgba(152, 255, 152, 0.8);
+      background: rgba(255, 255, 255, 0.07);
+      box-shadow: 0 0 10px rgba(152, 255, 152, 0.1);
+      outline: none;
+    }
+
+    .avatar-ring {
+      padding: 2px;
+      border-radius: 9999px;
+      background: transparent;
+      transition: all 0.3s ease;
+    }
+
+    .avatar-ring:hover {
+      background: #98FF98;
+      box-shadow: 0 0 10px rgba(152, 255, 152, 0.5);
+    }
+
+    .material-symbols-outlined {
+      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+    }
+  </style>
+</head>
+<body class="flex items-center justify-center p-4">
+<!-- Background Layer -->
+<div class="bliss-bg"></div>
+<!-- Login Card Container -->
+<main class="w-full max-w-md">
+<div class="glass-card iridescent-border p-8 md:p-12 flex flex-col items-center" style="border-radius: 20px;">
+<!-- Logo Section -->
+<div class="mb-8 flex flex-col items-center gap-4">
+<div class="w-24 h-24">
+<img alt="Pluma logo" class="w-full h-full object-contain" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAL01la4b5hI23l5kFM40zowvFfct76E6phrWbb6SyjYTBg3fNYmR4nOnvZe6Ui91uZm2rMKbWEa9MFgdmua78sY0OOHubLDCzkd_73OJA294Xp_PKstwAg-F4zpB9yLUTyycJ10SxSe6Kx__nceiFudmmj34DO6lJAnsBnBDfCoW4G8f_QrpTIuPgDxrLwfaorh2zdN7TkY9lN5Kl3tkQlapZlu_ZxuyyeyKc16ogapNGiee7ii7pdFBNZzpYWMvXoBQ">
+</div>
+<h1 class="font-headline-lg text-headline-lg text-primary tracking-tight">Pluma</h1>
+</div>
+<!-- Form Section -->
+<form class="w-full space-y-6">
+<!-- Username Field -->
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-textMuted ml-1 block" for="username">
+            Użytkownik
+          </label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/50 text-xl pointer-events-none transition-colors group-focus-within:text-primary">
+              person
+            </span>
+<input class="input-glass w-full h-12 pl-12 pr-4 rounded-DEFAULT font-body-md text-body-md text-on-surface placeholder:text-textMuted/40" id="username" name="username" placeholder="Wpisz swój pseudonim..." required="" type="text">
+</div>
+</div>
+<!-- Password Field -->
+<div class="space-y-2">
+<label class="font-label-md text-label-md text-textMuted ml-1 block" for="password">
+            Hasło
+          </label>
+<div class="relative group">
+<span class="material-symbols-outlined absolute left-4 top-1/2 -translate-y-1/2 text-primary/50 text-xl pointer-events-none transition-colors group-focus-within:text-primary">
+              lock
+            </span>
+<input class="input-glass w-full h-12 pl-12 pr-12 rounded-DEFAULT font-body-md text-body-md text-on-surface placeholder:text-textMuted/40" id="password" name="password" placeholder="••••••••" required="" type="password">
+<button class="absolute right-4 top-1/2 -translate-y-1/2 text-textMuted hover:text-primary transition-colors" type="button">
+<span class="material-symbols-outlined text-xl">visibility_off</span>
+</button>
+</div>
+</div>
+<!-- Submit Button -->
+<button class="neon-button w-full h-14 rounded-full flex items-center justify-center font-headline-sm text-headline-sm font-bold mt-4 shadow-lg" type="submit">
+          Zaloguj się
+        </button>
+</form>
+<!-- Footer Links -->
+<footer class="mt-8 w-full space-y-6 text-center">
+<div class="space-y-2">
+<a class="block font-label-md text-label-md text-textMuted hover:text-primary transition-colors" href="#">
+            Zapomniałeś hasła?
+          </a>
+<p class="font-body-sm text-body-sm text-textMuted">
+            Nie masz konta? 
+            <a class="text-primary font-bold hover:underline underline-offset-4 ml-1" href="#">
+              Zarejestruj się
+            </a>
+</p>
+</div>
+<!-- Saved Accounts / Multi-Account Switcher -->
+<div class="pt-6 border-t border-white/5 space-y-4">
+<p class="font-label-caps text-[10px] tracking-widest text-textMuted uppercase">Zapisane konta</p>
+<div class="flex justify-center gap-6">
+<!-- Account: @wegiel -->
+<button class="flex flex-col items-center gap-2 group" type="button">
+<div class="avatar-ring">
+<div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center overflow-hidden border border-white/10">
+<span class="text-primary text-xs font-bold">@w</span>
+</div>
+</div>
+<span class="font-label-md text-label-md text-textMuted group-hover:text-primary">@wegiel</span>
+</button>
+<!-- Account: @maslo -->
+<button class="flex flex-col items-center gap-2 group" type="button">
+<div class="avatar-ring">
+<div class="w-10 h-10 rounded-full bg-white/10 flex items-center justify-center overflow-hidden border border-white/10">
+<span class="text-primary text-xs font-bold">@m</span>
+</div>
+</div>
+<span class="font-label-md text-label-md text-textMuted group-hover:text-primary">@maslo</span>
+</button>
+</div>
+</div>
+</footer>
+</div>
+</main>
+<script>
+    // Subtle parallax for the background on mouse move
+    document.addEventListener('mousemove', (e) => {
+      const bg = document.querySelector('.bliss-bg');
+      const moveX = (e.clientX / window.innerWidth - 0.5) * 20;
+      const moveY = (e.clientY / window.innerHeight - 0.5) * 20;
+      bg.style.transform = `scale(1.1) translate(${moveX}px, ${moveY}px)`;
+    });
+  </script>
+</body></html>

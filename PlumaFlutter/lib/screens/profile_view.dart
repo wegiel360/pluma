@@ -50,7 +50,7 @@ class _ProfileViewState extends State<ProfileView> {
     _bio = _bioCtrl.text;
     setState(() => _saving = true);
     try {
-      await widget.services.api.usersApi.updateUser(
+      await widget.services.api.updateUser(
         widget.currentUser.username,
         bio: _bio,
       );
@@ -81,14 +81,14 @@ class _ProfileViewState extends State<ProfileView> {
       );
       if (type == 'pfp') {
         setState(() => _pfp = base64);
-        await widget.services.api.usersApi.updateUser(
+        await widget.services.api.updateUser(
           widget.currentUser.username,
           pfp: base64,
         );
         widget.onUserUpdated(widget.currentUser.copyWith(pfp: base64));
       } else {
         setState(() => _banner = base64);
-        await widget.services.api.usersApi.updateUser(
+        await widget.services.api.updateUser(
           widget.currentUser.username,
           banner: base64,
         );
@@ -104,7 +104,7 @@ class _ProfileViewState extends State<ProfileView> {
   Future<void> _changeColor(String hex) async {
     widget.onUserUpdated(widget.currentUser.copyWith(color: hex));
     try {
-      await widget.services.api.usersApi.updateUser(
+      await widget.services.api.updateUser(
         widget.currentUser.username,
         color: hex,
       );

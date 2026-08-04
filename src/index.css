@@ -1,0 +1,121 @@
+@import "tailwindcss";
+
+@theme {
+  --color-primary: var(--accent-color, #ffb870);
+  --color-on-primary: #120900;
+  --color-surface: #061700;
+  --color-on-surface: #d2eabb;
+  --color-on-surface-variant: #a0b88d;
+}
+
+:root {
+  --glass-bg: rgba(6, 23, 0, 0.45);
+  --glass-border: rgba(255, 184, 112, 0.15);
+  --iridescent-border: linear-gradient(135deg, var(--accent-color, #ffb870) 0%, rgba(255,255,255,0.3) 50%, var(--accent-color, #ffb870) 100%);
+  --neon-active: #98FF98;
+  --accent-color: #ffb870;
+}
+
+body {
+  background-color: #061700;
+  color: #d2eabb;
+  font-family: 'Ubuntu', sans-serif;
+}
+
+.ultra-glass {
+  background: var(--glass-bg);
+  backdrop-filter: blur(40px);
+  -webkit-backdrop-filter: blur(40px);
+  border: 1px solid var(--glass-border);
+}
+
+.glass-panel {
+  background: rgba(6, 23, 0, 0.65);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid var(--glass-border);
+}
+
+.liquid-glass-card {
+  background: rgba(24, 30, 44, 0.65);
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid rgba(255, 184, 112, 0.15);
+  border-radius: 2rem;
+  position: relative;
+}
+
+/* Animated Iridescent Border Effect */
+.iridescent-border {
+  position: relative;
+}
+
+.iridescent-border::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(135deg, 
+    var(--accent-color, #ffb870), rgba(255, 255, 255, 0.4), var(--accent-color, #ffb870), rgba(255, 255, 255, 0.2));
+  background-size: 300% 300%;
+  -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  animation: iridescent-rotate 8s linear infinite;
+}
+
+@keyframes iridescent-rotate {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+}
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--accent-color, #ffb870);
+  border-radius: 10px;
+}
+
+.neon-glow-active {
+  box-shadow: 0 0 12px var(--accent-color, #98FF98);
+  border: 2px solid var(--accent-color, #98FF98);
+}
+
+.input-glass {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.input-glass:focus {
+  border-color: var(--accent-color, #ffb870);
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: 0 0 12px var(--accent-color, #ffb870);
+  outline: none;
+}
+
+.neon-button {
+  background: var(--accent-color, #ffb870);
+  color: #120900;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.neon-button:hover {
+  box-shadow: 0 0 20px var(--accent-color, #ffb870);
+  transform: translateY(-1px);
+}
+
+.material-symbols-outlined {
+  font-variation-settings: 'FILL' 0, 'wght' 300, 'GRAD' 0, 'opsz' 24;
+}
+

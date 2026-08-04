@@ -74,7 +74,7 @@ class _MessagingViewState extends State<MessagingView> {
     final sel = _selected;
     if (sel == null) return;
     try {
-      final msgs = await widget.services.api.messagesApi
+      final msgs = await widget.services.api
           .getConversation(widget.currentUser.username, sel.username);
       if (mounted && _selected?.username == sel.username) {
         setState(() => _messages = msgs);
@@ -123,7 +123,7 @@ class _MessagingViewState extends State<MessagingView> {
     });
 
     try {
-      await widget.services.api.messagesApi.sendMessage(
+      await widget.services.api.sendMessage(
         sender: widget.currentUser.username,
         recipient: sel.username,
         text: currentText,
@@ -222,7 +222,7 @@ class _MessagingViewState extends State<MessagingView> {
     final clean = _customUsername.trim().toLowerCase().replaceAll(RegExp(r'^@'), '');
     if (clean.isEmpty) return;
     try {
-      final user = await widget.services.api.usersApi.getOrCreateUser(clean);
+      final user = await widget.services.api.getOrCreateUser(clean);
       if (mounted) {
         setState(() {
           _customUsername = '';
@@ -631,7 +631,7 @@ class _MessagingViewState extends State<MessagingView> {
   Future<void> _deleteMessage(String id) async {
     try {
       setState(() => _messages = _messages.where((m) => m.id != id).toList());
-      await widget.services.api.messagesApi.deleteMessage(id);
+      await widget.services.api.deleteMessage(id);
     } catch (_) {
       _showSnack('Blad usuwania wiadomosci.');
     }
