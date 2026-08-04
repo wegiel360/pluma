@@ -35,9 +35,10 @@ class _MessagingViewState extends State<MessagingView> {
   String _modalSearch = '';
   String _customUsername = '';
   String? _attachedBase64;
-  String? _attachedType; // 'image' | 'video'
+  String? _attachedType;
   bool _isCompressing = false;
   Timer? _poll;
+  bool _mobileShowChat = false;
 
   @override
   void initState() {
@@ -79,15 +80,14 @@ class _MessagingViewState extends State<MessagingView> {
       if (mounted && _selected?.username == sel.username) {
         setState(() => _messages = msgs);
       }
-    } catch (_) {
-      // ignore
-    }
+    } catch (_) {}
   }
 
   void _selectPerson(UserProfile user) {
     setState(() {
       _selected = user;
       _messages = [];
+      _mobileShowChat = true;
     });
     _startPolling();
   }
@@ -149,7 +149,8 @@ class _MessagingViewState extends State<MessagingView> {
       final mediaType = await _chooseMediaType();
       if (mediaType == null) return;
       if (mediaType == 'video') {
-        final file = await picker.pickVideo(source: source, maxDuration: const Duration(minutes: 2));
+        final file = await picker.pickVideo(
+            source: source, maxDuration: const Duration(minutes: 2));
         if (file == null) return;
         final base64 = await ImageUtils.convertVideoToBase64(file);
         setState(() {
@@ -176,21 +177,18 @@ class _MessagingViewState extends State<MessagingView> {
     return showModalBottomSheet<String>(
       context: context,
       builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.image),
-              title: const Text('Obraz'),
-              onTap: () => Navigator.pop(ctx, 'image'),
-            ),
-            ListTile(
-              leading: const Icon(Icons.videocam),
-              title: const Text('Wideo'),
-              onTap: () => Navigator.pop(ctx, 'video'),
-            ),
-          ],
-        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(
+            leading: const Icon(Icons.image),
+            title: const Text('Obraz'),
+            onTap: () => Navigator.pop(ctx, 'image'),
+          ),
+          ListTile(
+            leading: const Icon(Icons.videocam),
+            title: const Text('Wideo'),
+            onTap: () => Navigator.pop(ctx, 'video'),
+          ),
+        ]),
       ),
     );
   }
@@ -199,27 +197,27 @@ class _MessagingViewState extends State<MessagingView> {
     return showModalBottomSheet<ImageSource>(
       context: context,
       builder: (ctx) => SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            ListTile(
-              leading: const Icon(Icons.photo_library),
-              title: const Text('Galeria'),
-              onTap: () => Navigator.pop(ctx, ImageSource.gallery),
-            ),
-            ListTile(
-              leading: const Icon(Icons.photo_camera),
-              title: const Text('Aparat'),
-              onTap: () => Navigator.pop(ctx, ImageSource.camera),
-            ),
-          ],
-        ),
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(
+            leading: const Icon(Icons.photo_library),
+            title: const Text('Galeria'),
+            onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_camera),
+            title: const Text('Aparat'),
+            onTap: () => Navigator.pop(ctx, ImageSource.camera),
+          ),
+        ]),
       ),
     );
   }
 
   Future<void> _addCustomUser() async {
-    final clean = _customUsername.trim().toLowerCase().replaceAll(RegExp(r'^@'), '');
+    final clean = _customUsername
+        .trim()
+        .toLowerCase()
+        .replaceAll(RegExp(r'^@'), '');
     if (clean.isEmpty) return;
     try {
       final user = await widget.services.api.getOrCreateUser(clean);
@@ -251,40 +249,42 @@ class _MessagingViewState extends State<MessagingView> {
             u.username.toLowerCase().contains(_search.toLowerCase()))
         .toList();
 
-    return Stack(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(12),
-          child: GlassCard(
-            padding: EdgeInsets.zero,
-            radius: 28,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isDesktop = constraints.maxWidth >= 700;
-                if (isDesktop) {
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      SizedBox(width: 300, child: _buildPeopleList(filtered)),
-                      VerticalDivider(width: 1, color: Colors.white10),
-                      Expanded(child: _buildChat()),
-                    ],
-                  );
-                }
-                if (_selected != null) {
-                  return _buildChat();
-                }
-                return _buildPeopleList(filtered);
-              },
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final isDesktop = constraints.maxWidth >= 700;
+
+        return Stack(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(12),
+              child: GlassCard(
+                padding: EdgeInsets.zero,
+                radius: 28,
+                child: isDesktop
+                    ? Row(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          SizedBox(
+                              width: 300,
+                              child: _buildPeopleList(filtered)),
+                          const VerticalDivider(
+                              width: 1, color: Colors.white10),
+                          Expanded(child: _buildChat()),
+                        ],
+                      )
+                    : _mobileShowChat
+                        ? _buildChat()
+                        : _buildPeopleList(filtered),
+              ),
             ),
-          ),
-        ),
-        if (_showAddModal)
-          GlassModal(
-            onClose: () => setState(() => _showAddModal = false),
-            child: _buildAddModal(),
-          ),
-      ],
+            if (_showAddModal)
+              GlassModal(
+                onClose: () => setState(() => _showAddModal = false),
+                child: _buildAddModal(),
+              ),
+          ],
+        );
+      },
     );
   }
 
@@ -325,19 +325,23 @@ class _MessagingViewState extends State<MessagingView> {
           padding: const EdgeInsets.symmetric(horizontal: 12),
           child: TextField(
             onChanged: (v) => setState(() => _search = v),
-            style: const TextStyle(color: PlumaColors.onSurface, fontSize: 12),
+            style:
+                const TextStyle(color: PlumaColors.onSurface, fontSize: 12),
             decoration: InputDecoration(
               hintText: 'szukaj w rozmowach...',
               hintStyle: TextStyle(
-                color: PlumaColors.onSurfaceVariant.withValues(alpha: 0.5),
+                color:
+                    PlumaColors.onSurfaceVariant.withValues(alpha: 0.5),
                 fontSize: 12,
               ),
               filled: true,
               fillColor: Colors.white.withValues(alpha: 0.05),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+              contentPadding: const EdgeInsets.symmetric(
+                  horizontal: 14, vertical: 12),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                borderSide:
+                    BorderSide(color: Colors.white.withValues(alpha: 0.1)),
               ),
             ),
           ),
@@ -349,16 +353,37 @@ class _MessagingViewState extends State<MessagingView> {
             itemBuilder: (context, i) {
               final u = filtered[i];
               final isSel = _selected?.username == u.username;
+              final isSelf = u.username == widget.currentUser.username;
               return ListTile(
                 onTap: () => _selectPerson(u),
-                leading: NeonAvatar(image: u.pfp, online: true, size: 40),
-                title: Text(
-                  '@${u.username}',
-                  style: TextStyle(
-                    color: isSel ? PlumaColors.primary : PlumaColors.onSurface,
-                    fontSize: 14,
-                    fontWeight: FontWeight.w700,
-                  ),
+                leading: NeonAvatar(
+                    image: u.pfp, online: true, size: 40),
+                title: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '@${u.username}',
+                        style: TextStyle(
+                          color: isSel
+                              ? PlumaColors.primary
+                              : PlumaColors.onSurface,
+                          fontSize: 14,
+                          fontWeight: FontWeight.w700,
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (isSelf)
+                      Text(
+                        '(ty)',
+                        style: TextStyle(
+                          color:
+                              PlumaColors.primary.withValues(alpha: 0.7),
+                          fontSize: 10,
+                          fontFamily: 'monospace',
+                        ),
+                      ),
+                  ],
                 ),
                 subtitle: Text(
                   u.bio.isEmpty ? 'uzytkownik pluma' : u.bio,
@@ -370,7 +395,10 @@ class _MessagingViewState extends State<MessagingView> {
                   ),
                 ),
                 tileColor: isSel
-                    ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+                    ? Theme.of(context)
+                        .colorScheme
+                        .primary
+                        .withValues(alpha: 0.1)
                     : null,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(16),
@@ -384,21 +412,36 @@ class _MessagingViewState extends State<MessagingView> {
   }
 
   Widget _buildChat() {
-    final sel = _selected!;
+    final sel = _selected;
+    if (sel == null) {
+      return const Center(
+        child: Text(
+          'wybierz osobe, aby rozpoczac rozmowe',
+          style: TextStyle(
+            color: PlumaColors.onSurfaceVariant,
+            fontSize: 12,
+            fontFamily: 'monospace',
+          ),
+        ),
+      );
+    }
     final color = Theme.of(context).colorScheme.primary;
     return Column(
       children: [
         // Header
         Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          decoration: BoxDecoration(
+          padding:
+              const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+          decoration: const BoxDecoration(
             border: Border(bottom: BorderSide(color: Colors.white10)),
           ),
           child: Row(
             children: [
               GestureDetector(
-                onTap: () => setState(() => _selected = null),
-                child: const Icon(Icons.arrow_back, color: PlumaColors.primary),
+                onTap: () =>
+                    setState(() => _mobileShowChat = false),
+                child: const Icon(Icons.arrow_back,
+                    color: PlumaColors.primary),
               ),
               const SizedBox(width: 12),
               NeonAvatar(image: sel.pfp, size: 36),
@@ -437,7 +480,8 @@ class _MessagingViewState extends State<MessagingView> {
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       Icon(Icons.mark_chat_unread,
-                          color: color.withValues(alpha: 0.4), size: 40),
+                          color: color.withValues(alpha: 0.4),
+                          size: 40),
                       const SizedBox(height: 8),
                       Text(
                         'brak wiadomosci. napisz cos do @${sel.username}!',
@@ -450,20 +494,51 @@ class _MessagingViewState extends State<MessagingView> {
                     ],
                   ),
                 )
-              : ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: _messages.length,
-                  itemBuilder: (context, i) {
-                    final m = _messages[i];
-                    final isMe = m.sender == widget.currentUser.username;
-                    return _messageBubble(m, isMe);
-                  },
+              : Column(
+                  children: [
+                    // "dzisiaj" badge
+                    Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8),
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 16, vertical: 4),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.05),
+                          borderRadius: BorderRadius.circular(999),
+                          border: Border.all(color: Colors.white10),
+                        ),
+                        child: const Text(
+                          'dzisiaj',
+                          style: TextStyle(
+                            color: PlumaColors.onSurfaceVariant,
+                            fontSize: 10,
+                            fontFamily: 'monospace',
+                            letterSpacing: 1,
+                          ),
+                        ),
+                      ),
+                    ),
+                    // Message list
+                    Expanded(
+                      child: ListView.builder(
+                        padding:
+                            const EdgeInsets.symmetric(horizontal: 16),
+                        itemCount: _messages.length,
+                        itemBuilder: (context, i) {
+                          final m = _messages[i];
+                          final isMe = m.sender ==
+                              widget.currentUser.username;
+                          return _messageBubble(m, isMe, sel);
+                        },
+                      ),
+                    ),
+                  ],
                 ),
         ),
         // Input
         Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             border: Border(top: BorderSide(color: Colors.white10)),
           ),
           child: Column(
@@ -474,7 +549,9 @@ class _MessagingViewState extends State<MessagingView> {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(
-                      _attachedType == 'video' ? Icons.movie : Icons.image,
+                      _attachedType == 'video'
+                          ? Icons.movie
+                          : Icons.image,
                       color: color,
                     ),
                     const SizedBox(width: 8),
@@ -482,7 +559,10 @@ class _MessagingViewState extends State<MessagingView> {
                       _attachedType == 'video'
                           ? 'zalaczono plik wideo'
                           : 'zalaczono obraz (<1MB)',
-                      style: TextStyle(color: color, fontSize: 12, fontFamily: 'monospace'),
+                      style: TextStyle(
+                          color: color,
+                          fontSize: 12,
+                          fontFamily: 'monospace'),
                     ),
                     IconButton(
                       icon: const Icon(Icons.close, size: 16),
@@ -495,56 +575,67 @@ class _MessagingViewState extends State<MessagingView> {
                 ),
                 const SizedBox(height: 8),
               ],
-              Row(
-                children: [
-                  IconButton(
-                    onPressed: _isCompressing ? null : _pickFile,
-                    icon: _isCompressing
-                        ? const SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: PlumaColors.primary,
-                            ),
-                          )
-                        : const Icon(Icons.attach_file, color: PlumaColors.onSurfaceVariant),
-                  ),
-                  Expanded(
-                    child: TextField(
-                      controller: _inputCtrl,
-                      style: const TextStyle(color: PlumaColors.onSurface, fontSize: 14),
-                      decoration: InputDecoration(
-                        hintText: _isCompressing
-                            ? 'przetwarzanie pliku...'
-                            : 'napisz wiadomosc do @${sel.username}...',
-                        hintStyle: TextStyle(
-                          color: PlumaColors.onSurfaceVariant.withValues(alpha: 0.4),
-                          fontSize: 13,
-                        ),
-                        filled: true,
-                        fillColor: Colors.white.withValues(alpha: 0.05),
-                        border: OutlineInputBorder(
-                          borderRadius: BorderRadius.circular(999),
-                          borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.15)),
+              Container(
+                decoration: BoxDecoration(
+                  color: Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.circular(999),
+                  border: Border.all(
+                      color: Colors.white.withValues(alpha: 0.15)),
+                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
+                child: Row(
+                  children: [
+                    IconButton(
+                      onPressed:
+                          _isCompressing ? null : _pickFile,
+                      icon: _isCompressing
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: PlumaColors.primary,
+                              ),
+                            )
+                          : const Icon(Icons.attach_file,
+                              color: PlumaColors.onSurfaceVariant),
+                    ),
+                    Expanded(
+                      child: TextField(
+                        controller: _inputCtrl,
+                        style: const TextStyle(
+                            color: PlumaColors.onSurface, fontSize: 14),
+                        decoration: InputDecoration(
+                          hintText: _isCompressing
+                              ? 'przetwarzanie pliku...'
+                              : 'napisz wiadomosc do @${sel.username}...',
+                          hintStyle: TextStyle(
+                            color: PlumaColors.onSurfaceVariant
+                                .withValues(alpha: 0.4),
+                            fontSize: 13,
+                          ),
+                          filled: true,
+                          fillColor: Colors.transparent,
+                          border: InputBorder.none,
                         ),
                       ),
                     ),
-                  ),
-                  const SizedBox(width: 8),
-                  GestureDetector(
-                    onTap: _sending ? null : _send,
-                    child: Container(
-                      width: 44,
-                      height: 44,
-                      decoration: BoxDecoration(
-                        color: color,
-                        shape: BoxShape.circle,
+                    GestureDetector(
+                      onTap: _sending ? null : _send,
+                      child: Container(
+                        width: 40,
+                        height: 40,
+                        decoration: BoxDecoration(
+                          color: color,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(Icons.send,
+                            color: PlumaColors.onPrimary, size: 18),
                       ),
-                      child: const Icon(Icons.send, color: PlumaColors.onPrimary),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             ],
           ),
@@ -553,74 +644,98 @@ class _MessagingViewState extends State<MessagingView> {
     );
   }
 
-  Widget _messageBubble(Message m, bool isMe) {
+  Widget _messageBubble(Message m, bool isMe, UserProfile peer) {
     final color = Theme.of(context).colorScheme.primary;
     return Align(
       alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
       child: Container(
         margin: const EdgeInsets.symmetric(vertical: 4),
-        padding: const EdgeInsets.all(12),
         constraints: const BoxConstraints(maxWidth: 320),
-        decoration: BoxDecoration(
-          color: isMe
-              ? color.withValues(alpha: 0.2)
-              : Colors.white.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.only(
-            topLeft: const Radius.circular(18),
-            topRight: const Radius.circular(18),
-            bottomLeft: Radius.circular(isMe ? 18 : 4),
-            bottomRight: Radius.circular(isMe ? 4 : 18),
-          ),
-          border: Border.all(
-            color: isMe
-                ? color.withValues(alpha: 0.2)
-                : Colors.white.withValues(alpha: 0.1),
-          ),
-        ),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.end,
           children: [
-            if (m.isImage && m.imageUrl != null)
-              Image.network(
-                m.imageUrl!,
-                width: 220,
-                fit: BoxFit.contain,
-                errorBuilder: (_, _, _) =>
-                    const Icon(Icons.broken_image, size: 60),
-              ),
-            if (m.isVideo && m.videoUrl != null)
-              Container(
-                width: 220,
-                height: 120,
-                color: Colors.black54,
-                child: const Center(child: Icon(Icons.play_circle, size: 48)),
-              ),
-            if (m.text.isNotEmpty)
-              Text(
-                m.text,
-                style: const TextStyle(color: PlumaColors.onSurface, fontSize: 14),
-              ),
-            const SizedBox(height: 6),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                GestureDetector(
-                  onTap: () => _deleteMessage(m.id),
-                  child: const Icon(Icons.delete_outline,
-                      color: Color(0xFFFF6B6B), size: 14),
-                ),
-                const SizedBox(width: 8),
-                Text(
-                  m.timestamp,
-                  style: TextStyle(
+            if (!isMe) ...[
+              NeonAvatar(image: peer.pfp, size: 28),
+              const SizedBox(width: 8),
+            ],
+            Flexible(
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isMe
+                      ? color.withValues(alpha: 0.2)
+                      : Colors.white.withValues(alpha: 0.05),
+                  borderRadius: BorderRadius.only(
+                    topLeft: const Radius.circular(18),
+                    topRight: const Radius.circular(18),
+                    bottomLeft: Radius.circular(isMe ? 18 : 4),
+                    bottomRight: Radius.circular(isMe ? 4 : 18),
+                  ),
+                  border: Border.all(
                     color: isMe
-                        ? color.withValues(alpha: 0.8)
-                        : PlumaColors.onSurfaceVariant.withValues(alpha: 0.6),
-                    fontSize: 9,
-                    fontFamily: 'monospace',
+                        ? color.withValues(alpha: 0.2)
+                        : Colors.white.withValues(alpha: 0.1),
                   ),
                 ),
-              ],
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    if (m.isImage && m.imageUrl != null)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          m.imageUrl!,
+                          width: 220,
+                          fit: BoxFit.contain,
+                          errorBuilder: (_, _, _) =>
+                              const Icon(Icons.broken_image, size: 60),
+                        ),
+                      ),
+                    if (m.isVideo && m.videoUrl != null)
+                      Container(
+                        width: 220,
+                        height: 120,
+                        decoration: BoxDecoration(
+                          color: Colors.black54,
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: const Center(
+                          child: Icon(Icons.play_circle, size: 48),
+                        ),
+                      ),
+                    if (m.text.isNotEmpty)
+                      Text(
+                        m.text,
+                        style: const TextStyle(
+                            color: PlumaColors.onSurface, fontSize: 14),
+                      ),
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        GestureDetector(
+                          onTap: () => _deleteMessage(m.id),
+                          child: const Icon(Icons.delete_outline,
+                              color: Color(0xFFFF6B6B), size: 14),
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          m.timestamp,
+                          style: TextStyle(
+                            color: isMe
+                                ? color.withValues(alpha: 0.8)
+                                : PlumaColors.onSurfaceVariant
+                                    .withValues(alpha: 0.6),
+                            fontSize: 9,
+                            fontFamily: 'monospace',
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
             ),
           ],
         ),
@@ -630,7 +745,8 @@ class _MessagingViewState extends State<MessagingView> {
 
   Future<void> _deleteMessage(String id) async {
     try {
-      setState(() => _messages = _messages.where((m) => m.id != id).toList());
+      setState(() =>
+          _messages = _messages.where((m) => m.id != id).toList());
       await widget.services.api.deleteMessage(id);
     } catch (_) {
       _showSnack('Blad usuwania wiadomosci.');
@@ -638,11 +754,12 @@ class _MessagingViewState extends State<MessagingView> {
   }
 
   Widget _buildAddModal() {
-    final color = Theme.of(context).colorScheme.primary;
     final others = widget.allUsers
         .where((u) => u.username != widget.currentUser.username)
         .where((u) =>
-            u.username.toLowerCase().contains(_modalSearch.toLowerCase()) ||
+            u.username
+                .toLowerCase()
+                .contains(_modalSearch.toLowerCase()) ||
             u.bio.toLowerCase().contains(_modalSearch.toLowerCase()))
         .toList();
 
@@ -667,27 +784,34 @@ class _MessagingViewState extends State<MessagingView> {
                 ),
               ),
               IconButton(
-                onPressed: () => setState(() => _showAddModal = false),
+                onPressed: () =>
+                    setState(() => _showAddModal = false),
                 icon: const Icon(Icons.close),
               ),
             ],
           ),
           const SizedBox(height: 12),
           TextField(
-            onChanged: (v) => setState(() => _modalSearch = v),
-            style: const TextStyle(color: PlumaColors.onSurface, fontSize: 13),
+            onChanged: (v) =>
+                setState(() => _modalSearch = v),
+            style: const TextStyle(
+                color: PlumaColors.onSurface, fontSize: 13),
             decoration: InputDecoration(
               hintText: 'szukaj uzytkownika po nazwie lub opis...',
               hintStyle: TextStyle(
-                color: PlumaColors.onSurfaceVariant.withValues(alpha: 0.5),
+                color: PlumaColors.onSurfaceVariant
+                    .withValues(alpha: 0.5),
                 fontSize: 12,
               ),
-              prefixIcon: const Icon(Icons.search, size: 18),
+              prefixIcon:
+                  const Icon(Icons.search, size: 18),
               filled: true,
               fillColor: Colors.black.withValues(alpha: 0.4),
               border: OutlineInputBorder(
                 borderRadius: BorderRadius.circular(14),
-                borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                borderSide: BorderSide(
+                    color:
+                        Colors.white.withValues(alpha: 0.1)),
               ),
             ),
           ),
@@ -717,7 +841,8 @@ class _MessagingViewState extends State<MessagingView> {
                           setState(() => _showAddModal = false);
                           _selectPerson(u);
                         },
-                        leading: NeonAvatar(image: u.pfp, size: 40),
+                        leading:
+                            NeonAvatar(image: u.pfp, size: 40),
                         title: Text(
                           '@${u.username}',
                           style: const TextStyle(
@@ -726,7 +851,9 @@ class _MessagingViewState extends State<MessagingView> {
                           ),
                         ),
                         subtitle: Text(
-                          u.bio.isEmpty ? 'uzytkownik pluma' : u.bio,
+                          u.bio.isEmpty
+                              ? 'uzytkownik pluma'
+                              : u.bio,
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                           style: const TextStyle(
@@ -738,14 +865,26 @@ class _MessagingViewState extends State<MessagingView> {
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 6),
                           decoration: BoxDecoration(
-                            color: color.withValues(alpha: 0.1),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(color: color.withValues(alpha: 0.3)),
+                            color: Theme.of(context)
+                                .colorScheme
+                                .primary
+                                .withValues(alpha: 0.1),
+                            borderRadius:
+                                BorderRadius.circular(12),
+                            border: Border.all(
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary
+                                    .withValues(alpha: 0.3)),
                           ),
                           child: Text(
                             'czatuj',
                             style: TextStyle(
-                                color: color, fontSize: 11, fontFamily: 'monospace'),
+                                color: Theme.of(context)
+                                    .colorScheme
+                                    .primary,
+                                fontSize: 11,
+                                fontFamily: 'monospace'),
                           ),
                         ),
                       );
@@ -757,27 +896,34 @@ class _MessagingViewState extends State<MessagingView> {
             children: [
               Expanded(
                 child: TextField(
-                  onChanged: (v) => setState(() => _customUsername = v),
-                  style: const TextStyle(color: PlumaColors.onSurface, fontSize: 13),
+                  onChanged: (v) =>
+                      setState(() => _customUsername = v),
+                  style: const TextStyle(
+                      color: PlumaColors.onSurface, fontSize: 13),
                   decoration: InputDecoration(
                     hintText: 'lub wpisz nowy pseudonim...',
                     hintStyle: TextStyle(
-                      color: PlumaColors.onSurfaceVariant.withValues(alpha: 0.5),
+                      color: PlumaColors.onSurfaceVariant
+                          .withValues(alpha: 0.5),
                       fontSize: 12,
                     ),
                     filled: true,
-                    fillColor: Colors.black.withValues(alpha: 0.4),
-                    contentPadding:
-                        const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                    fillColor:
+                        Colors.black.withValues(alpha: 0.4),
+                    contentPadding: const EdgeInsets.symmetric(
+                        horizontal: 14, vertical: 12),
                     border: OutlineInputBorder(
                       borderRadius: BorderRadius.circular(14),
-                      borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                      borderSide: BorderSide(
+                          color: Colors.white
+                              .withValues(alpha: 0.1)),
                     ),
                   ),
                 ),
               ),
               const SizedBox(width: 8),
-              NeonButton(label: 'dodaj', onPressed: _addCustomUser),
+              NeonButton(
+                  label: 'dodaj', onPressed: _addCustomUser),
             ],
           ),
         ],
@@ -786,7 +932,6 @@ class _MessagingViewState extends State<MessagingView> {
   }
 }
 
-/// Small helper for short time formatting without intl DateFormat at build time.
 class DateFormatShort {
   static String time() {
     final now = DateTime.now();

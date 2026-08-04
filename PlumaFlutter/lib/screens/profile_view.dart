@@ -32,6 +32,7 @@ class _ProfileViewState extends State<ProfileView> {
   bool _saving = false;
   String? _error;
 
+
   @override
   void initState() {
     super.initState();
@@ -63,37 +64,45 @@ class _ProfileViewState extends State<ProfileView> {
     }
   }
 
-  Future<void> _pickImage(String type) async {
+  Future<void> _pickBanner(ImageSource source) async {
     final picker = ImagePicker();
-    final file = await picker.pickImage(
-      source: ImageSource.gallery,
-      maxWidth: type == 'pfp' ? 600 : 1600,
-    );
+    final file = await picker.pickImage(source: source, maxWidth: 1600);
     if (file == null) return;
     setState(() {
       _saving = true;
       _error = null;
     });
     try {
-      final base64 = await ImageUtils.compressToBase64(
-        file,
-        maxDimension: type == 'pfp' ? 600 : 1600,
+      final base64 = await ImageUtils.compressToBase64(file, maxDimension: 1600);
+      setState(() => _banner = base64);
+      await widget.services.api.updateUser(
+        widget.currentUser.username,
+        banner: base64,
       );
-      if (type == 'pfp') {
-        setState(() => _pfp = base64);
-        await widget.services.api.updateUser(
-          widget.currentUser.username,
-          pfp: base64,
-        );
-        widget.onUserUpdated(widget.currentUser.copyWith(pfp: base64));
-      } else {
-        setState(() => _banner = base64);
-        await widget.services.api.updateUser(
-          widget.currentUser.username,
-          banner: base64,
-        );
-        widget.onUserUpdated(widget.currentUser.copyWith(banner: base64));
-      }
+      widget.onUserUpdated(widget.currentUser.copyWith(banner: base64));
+    } catch (e) {
+      setState(() => _error = e.toString());
+    } finally {
+      if (mounted) setState(() => _saving = false);
+    }
+  }
+
+  Future<void> _pickPfp(ImageSource source) async {
+    final picker = ImagePicker();
+    final file = await picker.pickImage(source: source, maxWidth: 600);
+    if (file == null) return;
+    setState(() {
+      _saving = true;
+      _error = null;
+    });
+    try {
+      final base64 = await ImageUtils.compressToBase64(file, maxDimension: 600);
+      setState(() => _pfp = base64);
+      await widget.services.api.updateUser(
+        widget.currentUser.username,
+        pfp: base64,
+      );
+      widget.onUserUpdated(widget.currentUser.copyWith(pfp: base64));
     } catch (e) {
       setState(() => _error = e.toString());
     } finally {
@@ -108,15 +117,41 @@ class _ProfileViewState extends State<ProfileView> {
         widget.currentUser.username,
         color: hex,
       );
-    } catch (_) {
-      // ignore persistence errors, color applied locally
-    }
+    } catch (_) {}
+  }
+
+  void _showSourcePicker(String type) {
+    showModalBottomSheet<ImageSource>(
+      context: context,
+      builder: (ctx) => SafeArea(
+        child: Column(mainAxisSize: MainAxisSize.min, children: [
+          ListTile(
+            leading: const Icon(Icons.photo_library),
+            title: const Text('Galeria'),
+            onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+          ),
+          ListTile(
+            leading: const Icon(Icons.photo_camera),
+            title: const Text('Aparat'),
+            onTap: () => Navigator.pop(ctx, ImageSource.camera),
+          ),
+        ]),
+      ),
+    ).then((source) {
+      if (source == null) return;
+      if (type == 'banner') {
+        _pickBanner(source);
+      } else {
+        _pickPfp(source);
+      }
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.primary;
-    final currentColor = PlumaTheme.parseHex(widget.currentUser.color);
+    final currentColor =
+        PlumaTheme.parseHex(widget.currentUser.color);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
@@ -129,6 +164,21 @@ class _ProfileViewState extends State<ProfileView> {
             child: Stack(
               children: [
                 _bannerImage(180),
+                // Gradient overlay
+                Positioned.fill(
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          PlumaColors.surface.withValues(alpha: 0.9),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
                 Positioned(
                   right: 12,
                   top: 12,
@@ -136,7 +186,9 @@ class _ProfileViewState extends State<ProfileView> {
                     label: _saving ? 'zapisywanie...' : 'zmien tlo z pc',
                     icon: Icons.upload_file,
                     loading: _saving,
-                    onPressed: _saving ? null : () => _pickImage('banner'),
+                    onPressed: _saving
+                        ? null
+                        : () => _showSourcePicker('banner'),
                   ),
                 ),
               ],
@@ -149,7 +201,7 @@ class _ProfileViewState extends State<ProfileView> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               GestureDetector(
-                onTap: () => _pickImage('pfp'),
+                onTap: () => _showSourcePicker('pfp'),
                 child: NeonAvatar(image: _pfp, size: 96),
               ),
               const SizedBox(width: 16),
@@ -195,7 +247,8 @@ class _ProfileViewState extends State<ProfileView> {
               padding: const EdgeInsets.only(bottom: 8),
               child: Text(
                 _error!,
-                style: const TextStyle(color: Color(0xFFFF6B6B), fontSize: 12),
+                style: const TextStyle(
+                    color: Color(0xFFFF6B6B), fontSize: 12),
               ),
             ),
 
@@ -208,7 +261,8 @@ class _ProfileViewState extends State<ProfileView> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.fingerprint, color: PlumaColors.primary),
+                    const Icon(Icons.fingerprint,
+                        color: PlumaColors.primary),
                     const SizedBox(width: 8),
                     const Text(
                       'o mnie',
@@ -226,15 +280,20 @@ class _ProfileViewState extends State<ProfileView> {
                   TextField(
                     controller: _bioCtrl,
                     maxLines: 4,
-                    style: const TextStyle(color: PlumaColors.onSurface, fontSize: 14),
+                    style: const TextStyle(
+                        color: PlumaColors.onSurface, fontSize: 14),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor: Colors.black.withValues(alpha: 0.4),
+                      fillColor:
+                          Colors.black.withValues(alpha: 0.4),
                       hintText: 'Napisz cos o sobie...',
-                      hintStyle: const TextStyle(color: PlumaColors.onSurfaceVariant),
+                      hintStyle: const TextStyle(
+                          color: PlumaColors.onSurfaceVariant),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
-                        borderSide: BorderSide(color: Colors.white.withValues(alpha: 0.1)),
+                        borderSide: BorderSide(
+                            color: Colors.white
+                                .withValues(alpha: 0.1)),
                       ),
                     ),
                   ),
@@ -243,9 +302,12 @@ class _ProfileViewState extends State<ProfileView> {
                     mainAxisAlignment: MainAxisAlignment.end,
                     children: [
                       TextButton(
-                        onPressed: () => setState(() => _editingBio = false),
+                        onPressed: () =>
+                            setState(() => _editingBio = false),
                         child: const Text('anuluj',
-                            style: TextStyle(color: PlumaColors.onSurfaceVariant)),
+                            style: TextStyle(
+                                color:
+                                    PlumaColors.onSurfaceVariant)),
                       ),
                       const SizedBox(width: 8),
                       NeonButton(
@@ -279,7 +341,8 @@ class _ProfileViewState extends State<ProfileView> {
               children: [
                 Row(
                   children: [
-                    const Icon(Icons.palette, color: PlumaColors.primary),
+                    const Icon(Icons.palette,
+                        color: PlumaColors.primary),
                     const SizedBox(width: 8),
                     const Text(
                       'personalizacja wygladu',
@@ -306,9 +369,12 @@ class _ProfileViewState extends State<ProfileView> {
                   runSpacing: 20,
                   children: [
                     ...PlumaColors.presets.map((preset) {
-                      final presetColor = PlumaTheme.parseHex(preset['color']!);
-                      final isActive = currentColor.toARGB32() == presetColor.toARGB32();
-                      return _colorDot(presetColor, preset['label']!, isActive,
+                      final presetColor =
+                          PlumaTheme.parseHex(preset['color']!);
+                      final isActive = currentColor.toARGB32() ==
+                          presetColor.toARGB32();
+                      return _colorDot(presetColor,
+                          preset['label']!, isActive,
                           () => _changeColor(preset['color']!));
                     }),
                     _customColorPicker(currentColor),
@@ -347,7 +413,8 @@ class _ProfileViewState extends State<ProfileView> {
     );
   }
 
-  Widget _colorDot(Color c, String label, bool active, VoidCallback onTap) {
+  Widget _colorDot(
+      Color c, String label, bool active, VoidCallback onTap) {
     return GestureDetector(
       onTap: onTap,
       child: Column(
@@ -359,7 +426,8 @@ class _ProfileViewState extends State<ProfileView> {
               color: c,
               shape: BoxShape.circle,
               border: active
-                  ? Border.all(color: c.withValues(alpha: 0.6), width: 4)
+                  ? Border.all(
+                      color: c.withValues(alpha: 0.6), width: 4)
                   : null,
             ),
           ),
@@ -424,7 +492,6 @@ class _ProfileViewState extends State<ProfileView> {
   }
 }
 
-/// Minimal HSV picker canvas.
 class ColorPickerCanvas extends StatefulWidget {
   final Color initialColor;
   final ValueChanged<Color> onPicked;
@@ -458,10 +525,15 @@ class _ColorPickerCanvasState extends State<ColorPickerCanvas> {
             onTapDown: (d) => _updateFromPosition(d.localPosition),
             child: Container(
               decoration: BoxDecoration(
-                gradient: LinearGradient(
+                gradient: const LinearGradient(
                   colors: [
-                    Colors.red, Colors.yellow, Colors.green,
-                    Colors.cyan, Colors.blue, Colors.pinkAccent, Colors.red,
+                    Colors.red,
+                    Colors.yellow,
+                    Colors.green,
+                    Colors.cyan,
+                    Colors.blue,
+                    Colors.pinkAccent,
+                    Colors.red,
                   ],
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
@@ -475,7 +547,8 @@ class _ColorPickerCanvasState extends State<ColorPickerCanvas> {
         Container(
           width: 40,
           height: 40,
-          decoration: BoxDecoration(color: _color, shape: BoxShape.circle),
+          decoration:
+              BoxDecoration(color: _color, shape: BoxShape.circle),
         ),
         const SizedBox(height: 12),
         NeonButton(
@@ -490,6 +563,7 @@ class _ColorPickerCanvasState extends State<ColorPickerCanvas> {
     final width = context.size?.width ?? 1;
     final t = (pos.dx / width).clamp(0.0, 1.0);
     final hue = t * 360.0;
-    setState(() => _color = HSVColor.fromAHSV(1, hue, 1, 1).toColor());
+    setState(
+        () => _color = HSVColor.fromAHSV(1, hue, 1, 1).toColor());
   }
 }

@@ -31,6 +31,24 @@ class CityResult {
       .join(', ');
 }
 
+class HourlyForecast {
+  final String time;
+  final int rawHour;
+  final int temp;
+  final String icon;
+  final int rainChance;
+  final String condition;
+
+  const HourlyForecast({
+    required this.time,
+    required this.rawHour,
+    required this.temp,
+    required this.icon,
+    required this.rainChance,
+    required this.condition,
+  });
+}
+
 class WeatherData {
   final String cityName;
   final int temp;
@@ -41,6 +59,8 @@ class WeatherData {
   final int windSpeed;
   final int pressure;
   final String icon;
+  final List<HourlyForecast> hourly;
+  final String lastUpdated;
 
   const WeatherData({
     required this.cityName,
@@ -52,55 +72,53 @@ class WeatherData {
     required this.windSpeed,
     required this.pressure,
     required this.icon,
+    this.hourly = const [],
+    this.lastUpdated = '',
   });
-
-  factory WeatherData.fromJson(Map<String, dynamic> json) {
-    final w = json['weather'] as Map<String, dynamic>? ?? {};
-    int toInt(dynamic v, int fallback) =>
-        v is int ? v : (v is double ? v.round() : int.tryParse(v?.toString() ?? '') ?? fallback);
-    return WeatherData(
-      cityName: w['cityName']?.toString() ?? '',
-      temp: toInt(w['temp'], 20),
-      high: toInt(w['high'], 24),
-      low: toInt(w['low'], 16),
-      condition: w['condition']?.toString() ?? '',
-      humidity: toInt(w['humidity'], 50),
-      windSpeed: toInt(w['windSpeed'], 10),
-      pressure: toInt(w['pressure'], 1013),
-      icon: w['icon']?.toString() ?? '',
-    );
-  }
 }
 
 class WeatherApi {
-  Future<WeatherData> getWeather({double? lat, double? lon, String? city}) async {
+  Future<WeatherData> getWeather({
+    double? lat,
+    double? lon,
+    String? city,
+  }) async {
     final latitude = lat ?? 49.9542;
     final longitude = lon ?? 18.5833;
 
-    final currentUri = Uri.parse(
+    final uri = Uri.parse(
       'https://api.open-meteo.com/v1/forecast'
       '?latitude=$latitude&longitude=$longitude'
       '&current=temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,surface_pressure'
+      '&hourly=temperature_2m,relative_humidity_2m,precipitation_probability,weather_code'
       '&daily=temperature_2m_max,temperature_2m_min'
-      '&timezone=auto&forecast_days=1',
+      '&timezone=auto&forecast_days=2',
     );
 
-    final res = await http.get(currentUri).timeout(const Duration(seconds: 10));
+    final res = await http.get(uri).timeout(const Duration(seconds: 10));
     if (res.statusCode != 200) throw Exception('Bledne dane pogodowe');
 
     final data = jsonDecode(res.body) as Map<String, dynamic>;
     final current = data['current'] as Map<String, dynamic>? ?? {};
     final daily = data['daily'] as Map<String, dynamic>? ?? {};
+    final hourly = data['hourly'] as Map<String, dynamic>? ?? {};
 
     final code = (current['weather_code'] ?? 0) as int;
+    final currentHour = DateTime.now().hour;
+    final isNight = currentHour >= 22 || currentHour < 5;
     final condition = _conditionFromCode(code);
-    final icon = _iconFromCode(code);
+    final icon = _iconFromCode(code, isNight);
 
     final tempsMax = daily['temperature_2m_max'] as List?;
     final tempsMin = daily['temperature_2m_min'] as List?;
 
+    final hourlyList = _buildHourlyForecast(hourly);
+
+    final h = DateTime.now().hour.toString().padLeft(2, '0');
+    final m = DateTime.now().minute.toString().padLeft(2, '0');
+
     return WeatherData(
-      cityName: city ?? 'Jastrzebie-Zdroj',
+      cityName: city ?? 'Jastrzebie-Zdroj, Slask',
       temp: (current['temperature_2m'] ?? 20).round(),
       high: tempsMax != null && tempsMax.isNotEmpty
           ? (tempsMax[0] as num).round()
@@ -113,44 +131,130 @@ class WeatherApi {
       windSpeed: (current['wind_speed_10m'] ?? 10).round(),
       pressure: (current['surface_pressure'] ?? 1013).round(),
       icon: icon,
+      hourly: hourlyList,
+      lastUpdated: '$h:$m',
     );
+  }
+
+  List<HourlyForecast> _buildHourlyForecast(Map<String, dynamic> hourly) {
+    final times = (hourly['time'] as List?)?.cast<String>() ?? [];
+    final temps = (hourly['temperature_2m'] as List?) ?? [];
+    final rainChances = (hourly['precipitation_probability'] as List?) ?? [];
+    final codes = (hourly['weather_code'] as List?) ?? [];
+
+    final nowIso = DateTime.now().toIso8601String().substring(0, 13);
+    var startIndex = times.indexWhere((t) => t.startsWith(nowIso));
+    if (startIndex == -1) startIndex = 0;
+
+    final list = <HourlyForecast>[];
+    for (var i = 0; i < 24; i++) {
+      final idx = startIndex + i;
+      if (idx >= times.length) break;
+      final tDate = DateTime.parse(times[idx]);
+      final hVal = tDate.hour;
+      final itemNight = hVal >= 22 || hVal < 5;
+      final itemCode = idx < codes.length ? (codes[idx] as num).round() : 0;
+      final details = _conditionFromCode(itemCode);
+
+      list.add(HourlyForecast(
+        time: i == 0 ? 'teraz' : '${hVal.toString().padLeft(2, '0')}:00',
+        rawHour: hVal,
+        temp: idx < temps.length ? (temps[idx] as num).round() : 20,
+        icon: _iconFromCode(itemCode, itemNight),
+        rainChance:
+            idx < rainChances.length ? (rainChances[idx] as num).round() : 0,
+        condition: details,
+      ));
+    }
+    return list;
   }
 
   Future<List<CityResult>> searchCities(String query) async {
     final q = Uri.encodeComponent(query.trim());
     final uri = Uri.parse(
-      'https://geocoding-api.open-meteo.com/v1/search?name=$q&count=8&language=pl&format=json',
+      'https://geocoding-api.open-meteo.com/v1/search?name=$q&count=5&language=pl&format=json',
     );
     final res = await http.get(uri).timeout(const Duration(seconds: 8));
     if (res.statusCode != 200) return [];
 
     final data = jsonDecode(res.body) as Map<String, dynamic>;
     final results = data['results'] as List? ?? [];
-    return results.map((c) => CityResult.fromJson(c as Map<String, dynamic>)).toList();
+    return results
+        .map((c) => CityResult.fromJson(c as Map<String, dynamic>))
+        .toList();
   }
 
   String _conditionFromCode(int code) {
-    if (code == 0) return 'Slonecznie';
-    if (code <= 3) return 'Czesciowe chmury';
-    if (code <= 49) return 'Mgla';
-    if (code <= 59) return 'Mzawka';
-    if (code <= 69) return 'Deszcz';
-    if (code <= 79) return 'Snieg';
-    if (code <= 82) return 'Przelotny deszcz';
-    if (code <= 86) return 'Snieg przelotny';
-    if (code <= 99) return 'Burza';
-    return 'Nieznana';
+    switch (code) {
+      case 0:
+        return 'Bezchmurnie';
+      case 1:
+        return 'Slonecznie';
+      case 2:
+        return 'Czesciowe zachmurzenie';
+      case 3:
+        return 'Pochmurno';
+      case 45:
+      case 48:
+        return 'Mgla';
+      case 51:
+      case 53:
+      case 55:
+        return 'Mzawka';
+      case 61:
+      case 63:
+      case 65:
+        return 'Deszcz';
+      case 71:
+      case 73:
+      case 75:
+        return 'Opady sniegu';
+      case 80:
+      case 81:
+      case 82:
+        return 'Przelotny deszcz';
+      case 95:
+      case 96:
+      case 99:
+        return 'Burza';
+      default:
+        return 'Umiarkowanie';
+    }
   }
 
-  String _iconFromCode(int code) {
-    if (code == 0) return 'sunny';
-    if (code <= 3) return 'cloud';
-    if (code <= 59) return 'foggy';
-    if (code <= 69) return 'rainy';
-    if (code <= 79) return 'ac_unit';
-    if (code <= 82) return 'rainy';
-    if (code <= 86) return 'ac_unit';
-    if (code <= 99) return 'thunderstorm';
-    return 'cloud';
+  String _iconFromCode(int code, bool isNight) {
+    switch (code) {
+      case 0:
+      case 1:
+        return isNight ? 'nights_stay' : 'sunny';
+      case 2:
+        return isNight ? 'nights_stay' : 'partly_cloudy_day';
+      case 3:
+        return 'cloud';
+      case 45:
+      case 48:
+        return 'foggy';
+      case 51:
+      case 53:
+      case 55:
+        return 'grain';
+      case 61:
+      case 63:
+      case 65:
+      case 80:
+      case 81:
+      case 82:
+        return 'rainy';
+      case 71:
+      case 73:
+      case 75:
+        return 'ac_unit';
+      case 95:
+      case 96:
+      case 99:
+        return 'thunderstorm';
+      default:
+        return 'partly_cloudy_day';
+    }
   }
 }
