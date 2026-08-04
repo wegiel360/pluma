@@ -16,7 +16,7 @@ class UserProfile {
     this.name = '',
     this.bio = '',
     this.color = '#ffb870',
-    this.pfp = 'assets/logo-kogut-500x500.png',
+    this.pfp = 'assets/default-pfp.png',
     this.banner = 'assets/bliss-1024p.jpg',
     this.joined = '',
     this.pw = '',
@@ -31,7 +31,7 @@ class UserProfile {
       name: (json['name'] ?? '').toString(),
       bio: (json['bio'] ?? '').toString(),
       color: (json['color'] ?? '#ffb870').toString(),
-      pfp: (json['pfp'] ?? 'assets/logo-kogut-500x500.png').toString(),
+      pfp: (json['pfp'] ?? 'assets/default-pfp.png').toString(),
       banner: (json['banner'] ?? 'assets/bliss-1024p.jpg').toString(),
       joined: (json['joined'] ?? '').toString(),
       pw: (json['pw'] ?? '').toString(),
@@ -51,11 +51,33 @@ class UserProfile {
         'pfp': pfp,
         'banner': banner,
         'joined': joined,
-        'pw': pw,
         'theme': theme,
         'themeId': themeId,
         'createdAt': createdAt,
       };
+
+  Map<String, dynamic> toLocalMap() => {
+        ...toMap(),
+        'pw': pw,
+      };
+
+  factory UserProfile.fromLocalMap(Map<String, dynamic> json) {
+    return UserProfile(
+      username: (json['username'] ?? '').toString(),
+      name: (json['name'] ?? '').toString(),
+      bio: (json['bio'] ?? '').toString(),
+      color: (json['color'] ?? '#ffb870').toString(),
+      pfp: (json['pfp'] ?? 'assets/default-pfp.png').toString(),
+      banner: (json['banner'] ?? 'assets/bliss-1024p.jpg').toString(),
+      joined: (json['joined'] ?? '').toString(),
+      pw: (json['pw'] ?? '').toString(),
+      theme: (json['theme'] ?? '').toString(),
+      themeId: (json['themeId'] ?? '').toString(),
+      createdAt: (json['createdAt'] ?? 0) is int
+          ? json['createdAt'] as int
+          : int.tryParse((json['createdAt'] ?? '0').toString()) ?? 0,
+    );
+  }
 
   UserProfile copyWith({
     String? bio,
@@ -91,10 +113,14 @@ class Message {
   final String text;
   final String timestamp;
   final int createdAt;
+  final int? updatedAt;
+  final bool edited;
   final bool isImage;
   final bool isVideo;
   final String? imageUrl;
   final String? videoUrl;
+  final String status;
+  final Map<String, String> reactions;
 
   const Message({
     required this.id,
@@ -103,16 +129,27 @@ class Message {
     required this.text,
     required this.timestamp,
     required this.createdAt,
+    this.updatedAt,
+    this.edited = false,
     this.isImage = false,
     this.isVideo = false,
     this.imageUrl,
     this.videoUrl,
+    this.status = 'sent',
+    this.reactions = const {},
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
     final imageUrl = json['imageUrl']?.toString();
     final videoUrl = json['videoUrl']?.toString();
     final text = json['text']?.toString() ?? '';
+    final rawReactions = json['reactions'];
+    final reactions = <String, String>{};
+    if (rawReactions is Map) {
+      rawReactions.forEach((k, v) {
+        reactions[k.toString()] = v.toString();
+      });
+    }
     return Message(
       id: json['id']?.toString() ?? '',
       sender: json['sender']?.toString() ?? '',
@@ -122,10 +159,18 @@ class Message {
       createdAt: (json['createdAt'] ?? 0) is int
           ? json['createdAt'] as int
           : int.tryParse((json['createdAt'] ?? '0').toString()) ?? 0,
+      updatedAt: json['updatedAt'] != null
+          ? ((json['updatedAt'] ?? 0) is int
+              ? json['updatedAt'] as int
+              : int.tryParse(json['updatedAt'].toString()))
+          : null,
+      edited: json['edited'] == true,
       isImage: (imageUrl != null && imageUrl.isNotEmpty && text.isEmpty),
       isVideo: (videoUrl != null && videoUrl.isNotEmpty && text.isEmpty),
       imageUrl: imageUrl,
       videoUrl: videoUrl,
+      status: (json['status'] ?? 'sent').toString(),
+      reactions: reactions,
     );
   }
 
@@ -136,7 +181,46 @@ class Message {
         'text': text,
         'timestamp': timestamp,
         'createdAt': createdAt,
+        if (updatedAt != null) 'updatedAt': updatedAt,
+        if (edited) 'edited': true,
         'imageUrl': imageUrl,
         'videoUrl': videoUrl,
+        'status': status,
+        if (reactions.isNotEmpty) 'reactions': reactions,
+      };
+}
+
+class Invitation {
+  final String id;
+  final String from;
+  final String to;
+  final String status;
+  final int createdAt;
+
+  const Invitation({
+    required this.id,
+    required this.from,
+    required this.to,
+    this.status = 'pending',
+    required this.createdAt,
+  });
+
+  factory Invitation.fromMap(Map<String, dynamic> json) {
+    return Invitation(
+      id: (json['id'] ?? '').toString(),
+      from: (json['from'] ?? '').toString(),
+      to: (json['to'] ?? '').toString(),
+      status: (json['status'] ?? 'pending').toString(),
+      createdAt: (json['createdAt'] ?? 0) is int
+          ? json['createdAt'] as int
+          : int.tryParse((json['createdAt'] ?? '0').toString()) ?? 0,
+    );
+  }
+
+  Map<String, dynamic> toMap() => {
+        'from': from,
+        'to': to,
+        'status': status,
+        'createdAt': createdAt,
       };
 }

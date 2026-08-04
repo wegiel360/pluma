@@ -114,44 +114,49 @@ class _DashboardViewState extends State<DashboardView> {
     final dayName = days[_now.weekday % 7];
     final dateStr = '${_now.day} ${months[_now.month - 1]} ${_now.year}';
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: GlassCard(
-        padding: const EdgeInsets.all(24),
-        radius: 28,
-        child: LayoutBuilder(
-          builder: (context, constraints) {
-            final isWide = constraints.maxWidth >= 700;
-            final weatherSection = _buildWeatherSection(
-              color, w, hours, minutes, seconds,
-            );
-            final clockSection = _buildClockSection(
-              color, dayName, dateStr, hours, minutes, seconds,
-            );
+    return Center(
+      child: ConstrainedBox(
+        constraints: const BoxConstraints(maxWidth: 1200),
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(16),
+          child: GlassCard(
+            padding: const EdgeInsets.all(24),
+            radius: 28,
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final isWide = constraints.maxWidth >= 700;
+                final weatherSection = _buildWeatherSection(
+                  color, w, hours, minutes, seconds,
+                );
+                final clockSection = _buildClockSection(
+                  color, dayName, dateStr, hours, minutes, seconds,
+                );
 
-            if (isWide) {
-              return Row(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Expanded(flex: 7, child: weatherSection),
-                  Container(
-                    width: 1,
-                    margin: const EdgeInsets.symmetric(horizontal: 24),
-                    color: Colors.white10,
-                  ),
-                  Expanded(flex: 5, child: clockSection),
-                ],
-              );
-            }
-            return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                weatherSection,
-                const SizedBox(height: 16),
-                clockSection,
-              ],
-            );
-          },
+                if (isWide) {
+                  return Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(flex: 7, child: weatherSection),
+                      Container(
+                        width: 1,
+                        margin: const EdgeInsets.symmetric(horizontal: 24),
+                        color: Colors.white10,
+                      ),
+                      Expanded(flex: 5, child: clockSection),
+                    ],
+                  );
+                }
+                return Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    weatherSection,
+                    const SizedBox(height: 16),
+                    clockSection,
+                  ],
+                );
+              },
+            ),
+          ),
         ),
       ),
     );

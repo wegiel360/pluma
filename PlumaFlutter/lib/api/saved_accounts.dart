@@ -14,7 +14,7 @@ class SavedAccounts {
     try {
       final list = jsonDecode(raw) as List;
       return list
-          .map((e) => UserProfile.fromMap(e as Map<String, dynamic>))
+          .map((e) => UserProfile.fromLocalMap(e as Map<String, dynamic>))
           .toList();
     } catch (_) {
       return [];
@@ -36,6 +36,6 @@ class SavedAccounts {
     final filtered = current
         .where((u) => u.username.toLowerCase() != username.toLowerCase())
         .toList();
-    await prefs.setString(_key, jsonEncode(filtered.map((u) => u.toMap()).toList()));
+    await prefs.setString(_key, jsonEncode(filtered.map((u) => u.toLocalMap()).toList()));
   }
 }

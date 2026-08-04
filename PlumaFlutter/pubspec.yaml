@@ -54,3 +54,9 @@ flutter:
     - assets/logo-kogut-1000x1000.png
     - assets/logo-pluma.png
     - assets/bliss-1024p.jpg
+    - assets/default-pfp.png
+
+  fonts:
+    - family: NotoColorEmoji
+      fonts:
+        - asset: assets/fonts/NotoColorEmoji.ttf

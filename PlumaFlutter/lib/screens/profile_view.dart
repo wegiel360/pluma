@@ -158,12 +158,18 @@ class _ProfileViewState extends State<ProfileView> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Banner
+          // Banner — 21:8 aspect ratio
           ClipRRect(
             borderRadius: BorderRadius.circular(28),
             child: Stack(
               children: [
-                _bannerImage(180),
+                AspectRatio(
+                  aspectRatio: 21 / 8,
+                  child: ConstrainedBox(
+                    constraints: const BoxConstraints(minHeight: 120),
+                    child: _bannerImage(double.infinity),
+                  ),
+                ),
                 // Gradient overlay
                 Positioned.fill(
                   child: Container(
@@ -392,22 +398,22 @@ class _ProfileViewState extends State<ProfileView> {
     if (_banner.startsWith('data:')) {
       return Image.network(
         _banner,
-        height: height,
+        height: height == double.infinity ? null : height,
         width: double.infinity,
         fit: BoxFit.cover,
         errorBuilder: (_, _, _) => Container(
-          height: height,
+          height: height == double.infinity ? null : height,
           color: PlumaColors.surfaceBright,
         ),
       );
     }
     return Image.asset(
       _banner,
-      height: height,
+      height: height == double.infinity ? null : height,
       width: double.infinity,
       fit: BoxFit.cover,
       errorBuilder: (_, _, _) => Container(
-        height: height,
+        height: height == double.infinity ? null : height,
         color: PlumaColors.surfaceBright,
       ),
     );

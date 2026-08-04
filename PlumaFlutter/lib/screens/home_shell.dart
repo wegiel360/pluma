@@ -5,10 +5,11 @@ import '../main.dart';
 import '../theme/glass_components.dart';
 import '../theme/pluma_theme.dart';
 import 'dashboard_view.dart';
+import 'invitations_view.dart';
 import 'messaging_view.dart';
 import 'profile_view.dart';
 
-enum TabType { pulpit, osoby, profil }
+enum TabType { pulpit, osoby, zaproszenia, profil }
 
 class HomeShell extends StatefulWidget {
   final AppServices services;
@@ -90,6 +91,12 @@ class _HomeShellState extends State<HomeShell> {
           currentUser: _currentUser,
           allUsers: widget.allUsers,
         );
+      case TabType.zaproszenia:
+        return InvitationsView(
+          services: widget.services,
+          currentUser: _currentUser,
+          allUsers: widget.allUsers,
+        );
       case TabType.profil:
         return ProfileView(
           services: widget.services,
@@ -117,6 +124,7 @@ class _HomeShellState extends State<HomeShell> {
           const SizedBox(height: 32),
           _railItem(context, TabType.pulpit, Icons.dashboard, 'pulpit'),
           _railItem(context, TabType.osoby, Icons.group, 'osoby'),
+          _railItem(context, TabType.zaproszenia, Icons.person_add, 'zaproszenia'),
           _railItem(context, TabType.profil, Icons.person, 'profil'),
           const Spacer(),
           _avatarButton(context),
@@ -189,6 +197,7 @@ class _HomeShellState extends State<HomeShell> {
           children: [
             _bottomItem(TabType.pulpit, Icons.dashboard),
             _bottomItem(TabType.osoby, Icons.group),
+            _bottomItem(TabType.zaproszenia, Icons.person_add),
             _bottomItem(TabType.profil, Icons.person),
           ],
         ),

@@ -1,14 +1,10 @@
 import 'models.dart';
 
-/// Abstrakcyjna warstwa API — niezalezna od backendu.
-/// Factory wybiera implementacje na podstawie platformy.
 abstract class PlumaApi {
-  // Auth
   Future<UserProfile> login(String username, String password);
   Future<UserProfile> register(String username, String password);
   Future<void> logout();
 
-  // Users
   Future<UserProfile> getOrCreateUser(String username);
   Future<List<UserProfile>> getAllUsers();
   Future<void> updateUser(String username, {
@@ -23,7 +19,6 @@ abstract class PlumaApi {
     String? themeId,
   });
 
-  // Messages
   Future<void> sendMessage({
     required String sender,
     required String recipient,
@@ -34,7 +29,18 @@ abstract class PlumaApi {
   Future<List<Message>> getConversation(String user1, String user2);
   Future<List<Message>> getAllMessages();
   Future<void> deleteMessage(String messageId);
+  Future<void> editMessage(String messageId, String newText);
   Stream<List<Message>> conversationStream(String user1, String user2);
   Stream<List<Message>> allMessagesStream();
   Stream<List<UserProfile>> usersStream();
+
+  Future<void> updateMessageStatus(String messageId, String status);
+  Future<void> markConversationRead(String reader, String sender);
+  Future<void> toggleReaction(String messageId, String username, String emoji);
+
+  Future<void> sendInvitation(String from, String to);
+  Future<List<Invitation>> getIncomingInvitations(String username);
+  Future<void> respondToInvitation(String invitationId, bool accept);
+  Future<bool> areFriends(String user1, String user2);
+  Future<List<String>> getFriendUsernames(String username);
 }

@@ -4,18 +4,11 @@ import 'dart:math';
 import 'package:image_picker/image_picker.dart';
 
 class ImageUtils {
-  static const int _maxBytes = 1000000; // < 1MB
-
-  /// Reads an image file and converts to a base64 data URL (WebP-like), compressed < 1MB.
   static Future<String> compressToBase64(XFile file, {int maxDimension = 1000}) async {
     final bytes = await file.readAsBytes();
     if (bytes.isEmpty) {
       throw const FormatException('Nieprawidlowy plik obrazu.');
     }
-    if (bytes.length > _maxBytes) {
-      throw const FormatException('Plik obrazu jest zbyt duzy (>1MB).');
-    }
-    // Encode as data URL with base64 (backend stores the string directly).
     return _toDataUrl(bytes, file.name);
   }
 

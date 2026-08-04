@@ -86,7 +86,16 @@ class _LoginScreenState extends State<LoginScreen> {
       _error = null;
     });
     try {
-      final user = await _services.api.getOrCreateUser(accountUsername);
+      final saved = _savedAccounts.firstWhere(
+        (a) => a.username.toLowerCase() == accountUsername.toLowerCase(),
+        orElse: () => const UserProfile(username: ''),
+      );
+      final pw = saved.pw;
+      if (pw.isEmpty) {
+        setState(() => _error = 'Brak zapisanego hasla dla @$accountUsername. Zaloguj sie recznie.');
+        return;
+      }
+      final user = await _services.api.login(accountUsername, pw);
       await SavedAccounts.save(user);
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(

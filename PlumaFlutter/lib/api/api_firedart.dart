@@ -39,7 +39,7 @@ class FiredartApi extends PlumaApi {
       name: username,
       bio: 'uzytkownik pluma',
       color: '#ffb870',
-      pfp: 'assets/logo-kogut-500x500.png',
+      pfp: 'assets/default-pfp.png',
       banner: 'assets/bliss-1024p.jpg',
       createdAt: now,
     );
@@ -76,7 +76,7 @@ class FiredartApi extends PlumaApi {
       name: username,
       bio: 'uzytkownik pluma',
       color: '#ffb870',
-      pfp: 'assets/logo-kogut-500x500.png',
+      pfp: 'assets/default-pfp.png',
       banner: 'assets/bliss-1024p.jpg',
       createdAt: now,
     );
@@ -207,6 +207,162 @@ class FiredartApi extends PlumaApi {
         return;
       }
     }
+  }
+
+  @override
+  Future<void> editMessage(String messageId, String newText) async {
+    final convPage = await _firestore.collection('dms').get();
+    for (final conv in convPage) {
+      final docRef = conv.reference.collection('messages').document(messageId);
+      if (await docRef.exists) {
+        await docRef.update({
+          'text': newText,
+          'edited': true,
+          'updatedAt': DateTime.now().millisecondsSinceEpoch,
+        });
+        return;
+      }
+    }
+  }
+
+  @override
+  Future<void> updateMessageStatus(String messageId, String status) async {
+    final convPage = await _firestore.collection('dms').get();
+    for (final conv in convPage) {
+      final docRef = conv.reference.collection('messages').document(messageId);
+      if (await docRef.exists) {
+        await docRef.update({'status': status});
+        return;
+      }
+    }
+  }
+
+  @override
+  Future<void> markConversationRead(String reader, String sender) async {
+    final convId = _conversationId(reader, sender);
+    final page = await _firestore
+        .collection('dms')
+        .document(convId)
+        .collection('messages')
+        .where('recipient', isEqualTo: reader)
+        .where('sender', isEqualTo: sender)
+        .get();
+    for (final doc in page) {
+      final data = doc.map;
+      if (data['status'] != 'read') {
+        await doc.reference.update({'status': 'read'});
+      }
+    }
+  }
+
+  @override
+  Future<void> toggleReaction(String messageId, String username, String emoji) async {
+    final convPage = await _firestore.collection('dms').get();
+    for (final conv in convPage) {
+      final docRef = conv.reference.collection('messages').document(messageId);
+      if (await docRef.exists) {
+        final data = (await docRef.get()).map;
+        final reactions = Map<String, String>.from(data['reactions'] ?? {});
+        if (reactions[username] == emoji) {
+          reactions.remove(username);
+        } else {
+          reactions[username] = emoji;
+        }
+        await docRef.update({'reactions': reactions});
+        return;
+      }
+    }
+  }
+
+  // -----------------------------------------------------------------------
+  // INVITATIONS — kolekcja invitations/{id}
+  // -----------------------------------------------------------------------
+
+  @override
+  Future<void> sendInvitation(String from, String to) async {
+    final existing = await _firestore
+        .collection('invitations')
+        .where('from', isEqualTo: from)
+        .where('to', isEqualTo: to)
+        .where('status', isEqualTo: 'pending')
+        .get();
+    if (existing.isNotEmpty) return;
+
+    final reverse = await _firestore
+        .collection('invitations')
+        .where('from', isEqualTo: to)
+        .where('to', isEqualTo: from)
+        .where('status', isEqualTo: 'pending')
+        .get();
+    if (reverse.isNotEmpty) return;
+
+    await _firestore.collection('invitations').add({
+      'from': from,
+      'to': to,
+      'status': 'pending',
+      'createdAt': DateTime.now().millisecondsSinceEpoch,
+    });
+  }
+
+  @override
+  Future<List<Invitation>> getIncomingInvitations(String username) async {
+    final page = await _firestore
+        .collection('invitations')
+        .where('to', isEqualTo: username)
+        .where('status', isEqualTo: 'pending')
+        .get();
+    return page
+        .map((d) => Invitation.fromMap({...d.map, 'id': d.reference.id}))
+        .toList();
+  }
+
+  @override
+  Future<void> respondToInvitation(String invitationId, bool accept) async {
+    await _firestore.collection('invitations').document(invitationId).update({
+      'status': accept ? 'accepted' : 'declined',
+    });
+  }
+
+  @override
+  Future<bool> areFriends(String user1, String user2) async {
+    final q1 = await _firestore
+        .collection('invitations')
+        .where('from', isEqualTo: user1)
+        .where('to', isEqualTo: user2)
+        .where('status', isEqualTo: 'accepted')
+        .limit(1)
+        .get();
+    if (q1.isNotEmpty) return true;
+    final q2 = await _firestore
+        .collection('invitations')
+        .where('from', isEqualTo: user2)
+        .where('to', isEqualTo: user1)
+        .where('status', isEqualTo: 'accepted')
+        .limit(1)
+        .get();
+    return q2.isNotEmpty;
+  }
+
+  @override
+  Future<List<String>> getFriendUsernames(String username) async {
+    final q1 = await _firestore
+        .collection('invitations')
+        .where('from', isEqualTo: username)
+        .where('status', isEqualTo: 'accepted')
+        .get();
+    final q2 = await _firestore
+        .collection('invitations')
+        .where('to', isEqualTo: username)
+        .where('status', isEqualTo: 'accepted')
+        .get();
+    final friends = <String>{};
+    for (final d in q1) {
+      friends.add(d.map['to'] as String);
+    }
+    for (final d in q2) {
+      friends.add(d.map['from'] as String);
+    }
+    return friends.toList();
   }
 
   @override
