@@ -120,9 +120,6 @@ jobs:
       - name: Build Web
         run: flutter build web --release --base-href "/pluma/"
       
-      - name: Copy lite.html
-        run: cp web/lite.html build/web/
-      
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
