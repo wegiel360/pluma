@@ -182,18 +182,18 @@ class WeatherApi {
       case 0:
         return 'Bezchmurnie';
       case 1:
-        return 'Slonecznie';
+        return 'Słonecznie';
       case 2:
-        return 'Czesciowe zachmurzenie';
+        return 'Częściowe zachmurzenie';
       case 3:
         return 'Pochmurno';
       case 45:
       case 48:
-        return 'Mgla';
+        return 'Mgła';
       case 51:
       case 53:
       case 55:
-        return 'Mzawka';
+        return 'Mżawka';
       case 61:
       case 63:
       case 65:
@@ -201,7 +201,7 @@ class WeatherApi {
       case 71:
       case 73:
       case 75:
-        return 'Opady sniegu';
+        return 'Opady śniegu';
       case 80:
       case 81:
       case 82:

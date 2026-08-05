@@ -138,7 +138,7 @@ class _MessagingViewState extends State<MessagingView> {
       setState(() {
         _messages = _messages.where((m) => m.id != optimistic.id).toList();
       });
-      _showSnack('Nie udalo sie wyslac wiadomosci. Sprawdz polaczenie.');
+      _showSnack('Nie udało się wysłać wiadomości. Sprawdź połączenie.');
     } finally {
       if (mounted) setState(() => _sending = false);
     }
@@ -209,7 +209,7 @@ class _MessagingViewState extends State<MessagingView> {
         _selectPerson(user);
       }
     } catch (_) {
-      _showSnack('Nie udalo sie dodac osoby.');
+      _showSnack('Nie udało się dodać osoby.');
     }
   }
 
@@ -223,7 +223,7 @@ class _MessagingViewState extends State<MessagingView> {
       setState(() => _messages = _messages.where((m) => m.id != id).toList());
       await widget.services.api.deleteMessage(id);
     } catch (_) {
-      _showSnack('Blad usuwania wiadomosci.');
+      _showSnack('Błąd usuwania wiadomości.');
     }
   }
 
@@ -233,7 +233,7 @@ class _MessagingViewState extends State<MessagingView> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: PlumaColors.surface,
-        title: const Text('Edytuj wiadomosc',
+        title: const Text('Edytuj wiadomość',
             style: TextStyle(color: PlumaColors.onSurface)),
         content: TextField(
           controller: ctrl,
@@ -281,7 +281,7 @@ class _MessagingViewState extends State<MessagingView> {
                   }).toList();
                 });
               } catch (_) {
-                _showSnack('Blad edycji wiadomosci.');
+                _showSnack('Błąd edycji wiadomości.');
               }
             },
             child: const Text('zapisz',
@@ -323,7 +323,7 @@ class _MessagingViewState extends State<MessagingView> {
             if (isMe)
               ListTile(
                 leading: const Icon(Icons.delete_outline, color: Color(0xFFFF6B6B)),
-                title: const Text('Usun',
+                title: const Text('Usuń',
                     style: TextStyle(color: Color(0xFFFF6B6B))),
                 onTap: () { Navigator.pop(ctx); _deleteMessage(msg.id); },
               ),
@@ -422,7 +422,7 @@ class _MessagingViewState extends State<MessagingView> {
               GestureDetector(
                 onTap: () => setState(() => _showAddModal = true),
                 child: const Text(
-                  '+ znajdz osobe',
+                  '+ znajdź osobę',
                   style: TextStyle(
                     color: PlumaColors.primary,
                     fontSize: 12,
@@ -461,8 +461,8 @@ class _MessagingViewState extends State<MessagingView> {
                   child: Center(
                     child: Text(
                       _showAllUsers
-                          ? 'brak uzytkownikow'
-                          : 'wyslij zaproszenie do znajomego',
+                          ? 'brak użytkowników'
+                          : 'wyślij zaproszenie do znajomego',
                       style: TextStyle(
                         color: PlumaColors.onSurfaceVariant.withValues(alpha: 0.5),
                         fontSize: 12,
@@ -525,7 +525,7 @@ class _MessagingViewState extends State<MessagingView> {
     if (sel == null) {
       return const Center(
         child: Text(
-          'wybierz osobe, aby rozpoczac rozmowe',
+          'wybierz osobę, aby rozpocząć rozmowę',
           style: TextStyle(
             color: PlumaColors.onSurfaceVariant,
             fontSize: 12,
@@ -587,7 +587,7 @@ class _MessagingViewState extends State<MessagingView> {
                           color: color.withValues(alpha: 0.4), size: 40),
                       const SizedBox(height: 8),
                       Text(
-                        'brak wiadomosci. napisz cos do @${sel.username}!',
+                        'brak wiadomości. napisz cos do @${sel.username}!',
                         style: const TextStyle(
                           color: PlumaColors.onSurfaceVariant,
                           fontSize: 12,
@@ -655,8 +655,8 @@ class _MessagingViewState extends State<MessagingView> {
                     const SizedBox(width: 8),
                     Text(
                       _attachedType == 'video'
-                          ? 'zalaczono plik wideo'
-                          : 'zalaczono obraz',
+                          ? 'załączono plik wideo'
+                          : 'załączono obraz',
                       style: TextStyle(
                           color: color, fontSize: 12, fontFamily: 'monospace'),
                     ),
@@ -1029,7 +1029,7 @@ class _MessagingViewState extends State<MessagingView> {
               const SizedBox(width: 8),
               const Expanded(
                 child: Text(
-                  'wybierz osobe z platformy',
+                  'wybierz osobę z platformy',
                   style: TextStyle(
                     color: PlumaColors.primary,
                     fontSize: 16,
@@ -1069,7 +1069,7 @@ class _MessagingViewState extends State<MessagingView> {
                 ? const Padding(
                     padding: EdgeInsets.all(20),
                     child: Text(
-                      'brak zarejestrowanych osob pasujacych do szukania',
+                      'brak zarejestrowanych osób pasujących do szukania',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: PlumaColors.onSurfaceVariant,
@@ -1117,7 +1117,7 @@ class _MessagingViewState extends State<MessagingView> {
                                       widget.currentUser.username, u.username);
                                   if (mounted) _showSnack('Wyslano zaproszenie do @${u.username}');
                                 } catch (_) {
-                                  if (mounted) _showSnack('Blad wysylania zaproszenia.');
+                                  if (mounted) _showSnack('Błąd wysyłania zaproszenia.');
                                 }
                               },
                               child: Container(
@@ -1129,7 +1129,7 @@ class _MessagingViewState extends State<MessagingView> {
                                       color: PlumaColors.primary.withValues(alpha: 0.3)),
                                 ),
                                 child: const Text(
-                                  'zapros',
+                                  'zaproś',
                                   style: TextStyle(
                                     color: PlumaColors.primary,
                                     fontSize: 11,

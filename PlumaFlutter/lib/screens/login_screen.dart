@@ -48,11 +48,11 @@ class _LoginScreenState extends State<LoginScreen> {
     final username = _clean(_usernameCtrl.text);
     final password = _passwordCtrl.text;
     if (username.isEmpty) {
-      setState(() => _error = 'Wprowadz prawidlowy pseudonim');
+      setState(() => _error = 'Wprowadź prawidłowy pseudonim');
       return;
     }
     if (password.isEmpty) {
-      setState(() => _error = 'Wprowadz haslo');
+      setState(() => _error = 'Wprowadź hasło');
       return;
     }
 
@@ -74,28 +74,55 @@ class _LoginScreenState extends State<LoginScreen> {
     } on Exception catch (e) {
       setState(() => _error = e.toString().replaceAll('Exception: ', ''));
     } catch (e) {
-      setState(() => _error = 'Blad podczas logowania/rejestracji');
+      setState(() => _error = 'Błąd podczas logowania/rejestracji');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
   }
 
   Future<void> _quickLogin(String accountUsername) async {
+    final passwordCtrl = TextEditingController();
+    final ok = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        backgroundColor: PlumaColors.surface,
+        title: Text('Logowanie @$accountUsername',
+            style: const TextStyle(color: PlumaColors.onSurface)),
+        content: TextField(
+          controller: passwordCtrl,
+          obscureText: true,
+          autofocus: true,
+          style: const TextStyle(color: PlumaColors.onSurface),
+          decoration: const InputDecoration(
+            hintText: 'Hasło',
+            hintStyle: TextStyle(color: PlumaColors.onSurfaceVariant),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Anuluj',
+                style: TextStyle(color: PlumaColors.onSurfaceVariant)),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            child: const Text('Zaloguj',
+                style: TextStyle(color: PlumaColors.primary)),
+          ),
+        ],
+      ),
+    );
+    if (ok != true) return;
+
+    final password = passwordCtrl.text;
+    if (password.isEmpty) return;
+
     setState(() {
       _loading = true;
       _error = null;
     });
     try {
-      final saved = _savedAccounts.firstWhere(
-        (a) => a.username.toLowerCase() == accountUsername.toLowerCase(),
-        orElse: () => const UserProfile(username: ''),
-      );
-      final pw = saved.pw;
-      if (pw.isEmpty) {
-        setState(() => _error = 'Brak zapisanego hasla dla @$accountUsername. Zaloguj sie recznie.');
-        return;
-      }
-      final user = await _services.api.login(accountUsername, pw);
+      final user = await _services.api.login(accountUsername, password);
       await SavedAccounts.save(user);
       if (!mounted) return;
       Navigator.of(context).pushAndRemoveUntil(
@@ -103,7 +130,7 @@ class _LoginScreenState extends State<LoginScreen> {
         (route) => false,
       );
     } catch (e) {
-      setState(() => _error = 'Nie udalo sie zalogowac na konto @$accountUsername');
+      setState(() => _error = 'Nie udało się zalogować na konto @$accountUsername');
     } finally {
       if (mounted) setState(() => _loading = false);
     }
@@ -150,7 +177,7 @@ class _LoginScreenState extends State<LoginScreen> {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          'liquid glass messenger',
+                          'komunikator z wyglądem Płynny Żel',
                           textAlign: TextAlign.center,
                           style: TextStyle(
                             color: PlumaColors.onSurfaceVariant.withValues(alpha: 0.7),
@@ -182,15 +209,15 @@ class _LoginScreenState extends State<LoginScreen> {
                     ],
 
                     GlassInput(
-                      label: 'Uzytkownik',
-                      hint: 'wpisz swoj pseudonim...',
+                      label: 'Użytkownik',
+                      hint: 'wpisz swój pseudonim...',
                       controller: _usernameCtrl,
                       icon: Icons.person,
                     ),
                     const SizedBox(height: 16),
                     GlassInput(
-                      label: 'Haslo',
-                      hint: 'haslo',
+                      label: 'Hasło',
+                      hint: 'hasło',
                       controller: _passwordCtrl,
                       icon: Icons.lock,
                       obscureText: _obscure,
@@ -200,8 +227,8 @@ class _LoginScreenState extends State<LoginScreen> {
                     const SizedBox(height: 20),
                     NeonButton(
                       label: _loading
-                          ? 'Ladowanie...'
-                          : (_registerMode ? 'Zarejestruj sie' : 'Zaloguj sie'),
+                          ? 'Ładowanie...'
+                          : (_registerMode ? 'Zarejestruj się' : 'Zaloguj się'),
                       loading: _loading,
                       onPressed: _loading ? null : _submit,
                     ),
@@ -211,8 +238,8 @@ class _LoginScreenState extends State<LoginScreen> {
                       onPressed: () => setState(() => _registerMode = !_registerMode),
                       child: Text(
                         _registerMode
-                            ? 'Masz juz konto? Zaloguj sie'
-                            : 'Nie masz konta? Zarejestruj sie',
+                            ? 'Masz już konto? Zaloguj się'
+                            : 'Nie masz konta? Zarejestruj się',
                         style: TextStyle(
                           color: PlumaColors.onSurfaceVariant,
                           fontSize: 12,
@@ -223,7 +250,7 @@ class _LoginScreenState extends State<LoginScreen> {
                     const Divider(height: 40, color: Colors.white10),
 
                     Text(
-                      'zapisane konta na tym urzadzeniu',
+                      'zapisane konta na tym urządzeniu',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: PlumaColors.onSurfaceVariant.withValues(alpha: 0.6),

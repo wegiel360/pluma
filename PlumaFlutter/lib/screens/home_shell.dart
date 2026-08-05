@@ -5,11 +5,10 @@ import '../main.dart';
 import '../theme/glass_components.dart';
 import '../theme/pluma_theme.dart';
 import 'dashboard_view.dart';
-import 'invitations_view.dart';
 import 'messaging_view.dart';
 import 'profile_view.dart';
 
-enum TabType { pulpit, osoby, zaproszenia, profil }
+enum TabType { pulpit, osoby, profil }
 
 class HomeShell extends StatefulWidget {
   final AppServices services;
@@ -89,12 +88,6 @@ class _HomeShellState extends State<HomeShell> {
           currentUser: _currentUser,
           allUsers: widget.allUsers,
         );
-      case TabType.zaproszenia:
-        return InvitationsView(
-          services: widget.services,
-          currentUser: _currentUser,
-          allUsers: widget.allUsers,
-        );
       case TabType.profil:
         return ProfileView(
           services: widget.services,
@@ -121,15 +114,14 @@ class _HomeShellState extends State<HomeShell> {
           ),
           const SizedBox(height: 32),
           _railItem(context, TabType.pulpit, Icons.dashboard, 'pulpit'),
-          _railItem(context, TabType.osoby, Icons.group, 'osoby'),
-          _railItem(context, TabType.zaproszenia, Icons.person_add, 'zaproszenia'),
+          _railItemWithBadge(context, TabType.osoby, Icons.group, 'osoby'),
           _railItem(context, TabType.profil, Icons.person, 'profil'),
           const Spacer(),
           _avatarButton(context),
           const SizedBox(height: 12),
           IconButton(
             onPressed: widget.onLogout,
-            tooltip: 'Wyloguj sie',
+            tooltip: 'Wyloguj się',
             icon: const Icon(Icons.logout, color: PlumaColors.onSurfaceVariant),
             iconSize: 18,
             color: PlumaColors.onSurfaceVariant.withValues(alpha: 0.6),
@@ -167,6 +159,62 @@ class _HomeShellState extends State<HomeShell> {
     );
   }
 
+  Widget _railItemWithBadge(BuildContext context, TabType tab, IconData icon, String label) {
+    final active = _activeTab == tab;
+    final color = Theme.of(context).colorScheme.primary;
+    final pendingCount = 0;
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 6),
+      child: Tooltip(
+        message: label,
+        child: GestureDetector(
+          onTap: () => setState(() => _activeTab = tab),
+          child: Container(
+            width: 48,
+            height: 48,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: active ? color.withValues(alpha: 0.1) : Colors.transparent,
+            ),
+            child: Stack(
+              alignment: Alignment.center,
+              children: [
+                Icon(
+                  icon,
+                  color: active ? color : PlumaColors.onSurfaceVariant,
+                  size: 24,
+                ),
+                if (pendingCount > 0)
+                  Positioned(
+                    right: 4,
+                    top: 4,
+                    child: Container(
+                      width: 16,
+                      height: 16,
+                      decoration: const BoxDecoration(
+                        color: Color(0xFFFF6B6B),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Center(
+                        child: Text(
+                          '$pendingCount',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 9,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _avatarButton(BuildContext context) {
     return GestureDetector(
       onTap: () => setState(() => _activeTab = TabType.profil),
@@ -195,7 +243,6 @@ class _HomeShellState extends State<HomeShell> {
           children: [
             _bottomItem(TabType.pulpit, Icons.dashboard),
             _bottomItem(TabType.osoby, Icons.group),
-            _bottomItem(TabType.zaproszenia, Icons.person_add),
             _bottomItem(TabType.profil, Icons.person),
           ],
         ),

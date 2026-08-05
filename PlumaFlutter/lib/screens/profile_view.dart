@@ -162,7 +162,7 @@ class _ProfileViewState extends State<ProfileView> {
                   right: 12,
                   top: 12,
                   child: NeonButton(
-                    label: _saving ? 'zapisywanie...' : 'zmien tlo z pc',
+                    label: _saving ? 'zapisywanie...' : 'zmień tło z pc',
                     icon: Icons.upload_file,
                     loading: _saving,
                     onPressed: _saving ? null : _pickBanner,
@@ -194,7 +194,7 @@ class _ProfileViewState extends State<ProfileView> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      'dolaczyl ${ImageUtils.formatJoinedDate(widget.currentUser.createdAt)}',
+                      'dołączył ${ImageUtils.formatJoinedDate(widget.currentUser.createdAt)}',
                       style: const TextStyle(
                         color: PlumaColors.onSurfaceVariant,
                         fontSize: 12,
@@ -205,7 +205,7 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
               ),
               NeonButton(
-                label: _editingBio ? 'zapisujac...' : 'edytuj bio',
+                label: _editingBio ? 'zapisując...' : 'edytuj bio',
                 onPressed: _editingBio
                     ? null
                     : () {
@@ -312,7 +312,7 @@ class _ProfileViewState extends State<ProfileView> {
                         color: PlumaColors.primary),
                     const SizedBox(width: 8),
                     const Text(
-                      'personalizacja wygladu',
+                      'personalizacja wyglądu',
                       style: TextStyle(
                         color: PlumaColors.onSurfaceVariant,
                         fontSize: 12,
@@ -324,7 +324,7 @@ class _ProfileViewState extends State<ProfileView> {
                 ),
                 const SizedBox(height: 8),
                 const Text(
-                  'wybierz swoj unikalny kolor profilu, ktory odmieni interfejs.',
+                  'wybierz swój unikalny kolor profilu, który odmieni interfejs.',
                   style: TextStyle(
                     color: PlumaColors.onSurfaceVariant,
                     fontSize: 12,
@@ -425,7 +425,7 @@ class _ProfileViewState extends State<ProfileView> {
             ),
           ),
           const SizedBox(height: 6),
-          const Text('wlasny',
+          const Text('własny',
               style: TextStyle(
                   color: PlumaColors.onSurfaceVariant,
                   fontSize: 12,

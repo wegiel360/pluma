@@ -17,11 +17,11 @@ class DashboardView extends StatefulWidget {
 
 class _DashboardViewState extends State<DashboardView> {
   static const _default = CityResult(
-    name: 'Jastrzebie-Zdroj',
-    admin1: 'Slask',
+    name: 'Katowice',
+    admin1: 'Śląsk',
     country: 'Polska',
-    latitude: 49.9542,
-    longitude: 18.5833,
+    latitude: 50.2649,
+    longitude: 19.0238,
   );
 
   CityResult _location = _default;
@@ -30,23 +30,17 @@ class _DashboardViewState extends State<DashboardView> {
   bool _searching = false;
   String _searchQuery = '';
   List<CityResult> _results = [];
-  DateTime _now = DateTime.now();
-  Timer? _clock;
   Timer? _refresh;
 
   @override
   void initState() {
     super.initState();
-    _clock = Timer.periodic(const Duration(seconds: 1), (_) {
-      setState(() => _now = DateTime.now());
-    });
     _fetchWeather();
     _refresh = Timer.periodic(const Duration(hours: 1), (_) => _fetchWeather());
   }
 
   @override
   void dispose() {
-    _clock?.cancel();
     _refresh?.cancel();
     super.dispose();
   }
@@ -99,72 +93,23 @@ class _DashboardViewState extends State<DashboardView> {
   Widget build(BuildContext context) {
     final w = _weather;
     final color = Theme.of(context).colorScheme.primary;
-    final hours = _pad(_now.hour);
-    final minutes = _pad(_now.minute);
-    final seconds = _pad(_now.second);
-
-    const days = [
-      'niedziela', 'poniedzialek', 'wtorek', 'sroda',
-      'czwartek', 'piatek', 'sobota'
-    ];
-    const months = [
-      'stycznia', 'lutego', 'marca', 'kwietnia', 'maja', 'czerwca',
-      'lipca', 'sierpnia', 'wrzesnia', 'pazdziernika', 'listopada', 'grudnia'
-    ];
-    final dayName = days[_now.weekday % 7];
-    final dateStr = '${_now.day} ${months[_now.month - 1]} ${_now.year}';
 
     return Center(
       child: ConstrainedBox(
-        constraints: const BoxConstraints(maxWidth: 1200),
+        constraints: const BoxConstraints(maxWidth: 900),
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(16),
           child: GlassCard(
             padding: const EdgeInsets.all(24),
             radius: 28,
-            child: LayoutBuilder(
-              builder: (context, constraints) {
-                final isWide = constraints.maxWidth >= 700;
-                final weatherSection = _buildWeatherSection(
-                  color, w, hours, minutes, seconds,
-                );
-                final clockSection = _buildClockSection(
-                  color, dayName, dateStr, hours, minutes, seconds,
-                );
-
-                if (isWide) {
-                  return Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(flex: 7, child: weatherSection),
-                      Container(
-                        width: 1,
-                        margin: const EdgeInsets.symmetric(horizontal: 24),
-                        color: Colors.white10,
-                      ),
-                      Expanded(flex: 5, child: clockSection),
-                    ],
-                  );
-                }
-                return Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    weatherSection,
-                    const SizedBox(height: 16),
-                    clockSection,
-                  ],
-                );
-              },
-            ),
+            child: _buildWeatherSection(color, w),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildWeatherSection(
-    Color color, WeatherData? w, String hours, String minutes, String seconds,
-  ) {
+  Widget _buildWeatherSection(Color color, WeatherData? w) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -174,7 +119,7 @@ class _DashboardViewState extends State<DashboardView> {
             const SizedBox(width: 8),
             const Expanded(
               child: Text(
-                'pogoda na zywo (odswiezanie co 1h)',
+                'pogoda na żywo (odświeżanie co 1h)',
                 style: TextStyle(
                   color: PlumaColors.onSurfaceVariant,
                   fontSize: 12,
@@ -204,42 +149,10 @@ class _DashboardViewState extends State<DashboardView> {
                         size: 16, color: PlumaColors.primary),
               ),
             ),
-            const SizedBox(width: 8),
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-              decoration: BoxDecoration(
-                color: const Color(0x1A4ADE80),
-                borderRadius: BorderRadius.circular(999),
-                border: Border.all(color: const Color(0x334ADE80)),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Container(
-                    width: 6,
-                    height: 6,
-                    decoration: const BoxDecoration(
-                      color: Color(0xFF4ADE80),
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    '$hours:$minutes:$seconds',
-                    style: const TextStyle(
-                      color: Color(0xFF4ADE80),
-                      fontSize: 11,
-                      fontFamily: 'monospace',
-                    ),
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
         const SizedBox(height: 16),
 
-        // City search
         Container(
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.05),
@@ -252,7 +165,7 @@ class _DashboardViewState extends State<DashboardView> {
                 const TextStyle(color: PlumaColors.onSurface, fontSize: 12),
             decoration: InputDecoration(
               hintText:
-                  'Wpisz nazwe miasta (np. Warszawa, Katowice, Londyn)...',
+                  'Wpisz nazwę miasta (np. Warszawa, Kraków, Londyn)...',
               hintStyle: TextStyle(
                 color: PlumaColors.onSurfaceVariant.withValues(alpha: 0.5),
                 fontSize: 12,
@@ -342,7 +255,6 @@ class _DashboardViewState extends State<DashboardView> {
         const SizedBox(height: 16),
 
         if (w != null) ...[
-          // Temp and high/low
           Row(
             children: [
               Icon(w.icon.isEmpty ? Icons.wb_sunny : _iconFor(w.icon),
@@ -394,7 +306,7 @@ class _DashboardViewState extends State<DashboardView> {
           ),
           const SizedBox(height: 12),
           Text(
-            '${w.condition} \u2014 ${w.cityName}',
+            '${w.condition} — ${w.cityName}',
             style: const TextStyle(
               color: PlumaColors.onSurfaceVariant,
               fontSize: 13,
@@ -402,17 +314,15 @@ class _DashboardViewState extends State<DashboardView> {
           ),
           const SizedBox(height: 16),
 
-          // Metrics
           Row(
             children: [
-              _metric('wilgotnosc', '${w.humidity}%', Icons.water_drop),
+              _metric('wilgotność', '${w.humidity}%', Icons.water_drop),
               _metric('wiatr', '${w.windSpeed} km/h', Icons.air),
-              _metric('cisnienie', '${w.pressure} hPa', Icons.speed),
+              _metric('ciśnienie', '${w.pressure} hPa', Icons.speed),
             ],
           ),
           const SizedBox(height: 16),
 
-          // Hourly forecast
           if (w.hourly.isNotEmpty) ...[
             Container(
               width: double.infinity,
@@ -426,16 +336,16 @@ class _DashboardViewState extends State<DashboardView> {
                   Row(
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
-                      Text(
-                        'prognoza godzinowa 24h (od $hours:00)',
-                        style: const TextStyle(
+                      const Text(
+                        'prognoza godzinowa 24h',
+                        style: TextStyle(
                           color: PlumaColors.onSurfaceVariant,
                           fontSize: 12,
                           fontFamily: 'monospace',
                         ),
                       ),
                       Text(
-                        'przewijaj \u2192',
+                        'przewijaj →',
                         style: TextStyle(
                           color: PlumaColors.primary.withValues(alpha: 0.7),
                           fontSize: 10,
@@ -511,110 +421,6 @@ class _DashboardViewState extends State<DashboardView> {
             child: Center(child: CircularProgressIndicator()),
           ),
       ],
-    );
-  }
-
-  Widget _buildClockSection(
-    Color color, String dayName, String dateStr,
-    String hours, String minutes, String seconds,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.only(top: 8),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              const Icon(Icons.schedule, color: PlumaColors.primary, size: 20),
-              const SizedBox(width: 8),
-              const Text(
-                'zegar',
-                style: TextStyle(
-                  color: PlumaColors.onSurfaceVariant,
-                  fontSize: 12,
-                  fontFamily: 'monospace',
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 16),
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [
-              Text(
-                '$hours:$minutes',
-                style: const TextStyle(
-                  color: PlumaColors.onSurface,
-                  fontSize: 36,
-                  fontWeight: FontWeight.bold,
-                  fontFamily: 'monospace',
-                  letterSpacing: 1,
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.only(bottom: 4),
-                child: Text(
-                  ':$seconds',
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 16,
-                    fontFamily: 'monospace',
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 6),
-          Text(
-            dayName,
-            style: TextStyle(
-              color: color,
-              fontSize: 14,
-              fontWeight: FontWeight.w500,
-            ),
-          ),
-          const SizedBox(height: 2),
-          Text(
-            dateStr,
-            style: const TextStyle(
-              color: PlumaColors.onSurfaceVariant,
-              fontSize: 11,
-              fontFamily: 'monospace',
-            ),
-          ),
-          const SizedBox(height: 12),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(color: color.withValues(alpha: 0.2)),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 6,
-                  height: 6,
-                  decoration: BoxDecoration(
-                    color: color,
-                    shape: BoxShape.circle,
-                  ),
-                ),
-                const SizedBox(width: 6),
-                Text(
-                  'GMT+2',
-                  style: TextStyle(
-                    color: color,
-                    fontSize: 10,
-                    fontFamily: 'monospace',
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
     );
   }
 

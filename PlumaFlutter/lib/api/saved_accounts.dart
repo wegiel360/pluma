@@ -26,8 +26,9 @@ class SavedAccounts {
     final current = await load();
     final filtered =
         current.where((u) => u.username.toLowerCase() != user.username.toLowerCase()).toList();
-    filtered.insert(0, user);
-    await prefs.setString(_key, jsonEncode(filtered.map((u) => u.toMap()).toList()));
+    final toSave = user.copyWith(pw: '');
+    filtered.insert(0, toSave);
+    await prefs.setString(_key, jsonEncode(filtered.map((u) => u.toLocalMap()).toList()));
   }
 
   static Future<void> remove(String username) async {
