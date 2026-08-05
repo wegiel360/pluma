@@ -1,10 +1,9 @@
-# Pluma
+# Pluma - Nowoczesny komunikator w stylu Płynny Żel
 
 <div align="center">
 <img src="PlumaFlutter/assets/logo-pluma.png" alt="Pluma Logo" width="160" />
 <br/><br/>
-<b>Nowoczesny komunikator w stylu Płynny Żel.</b><br/>
-Flutter · Flask API · SQLite
+Flutter · GH Pages · Firebase
 </div>
 
 ---
@@ -66,7 +65,7 @@ pluma/
 
 ---
 
-## Frontend — aplikacja Flutter
+## Frontend - aplikacja Flutter
 
 ### Wymagania
 
@@ -90,71 +89,7 @@ flutter build apk --release
 flutter build web --release --base-href "/pluma/" --dart-define=API_BASE_URL=<URL_API>
 ```
 
-### Konfiguracja adresu API
-
-Bazowy adres backendu wstrzykuje się w czasie budowania przez zmienną `API_BASE_URL`
-(domyślnie `http://localhost:5000/api`). Frontend wysyła **żądania CORS** do wskazanego
-adresu i nigdy nie szuka plików po stronie backendu.
-
-```bash
-flutter build windows --release --dart-define=API_BASE_URL=https://api.example.com/api
-```
-
----
-
-## Backend — API Flask
-
-### Uruchomienie lokalne
-
-```bash
-cd python_backend
-pip install -r requirements.txt
-python flask_app.py
-```
-
-Serwer wstaje na `http://localhost:5000`. Baza SQLite (`pluma.db`) tworzy się
-automatycznie przy starcie (z migracją `password_hash`).
-
-### Główne endpointy (`/api`)
-
-| Metoda | Ścieżka              | Opis                        |
-|--------|----------------------|-----------------------------|
-| POST   | `/auth/register`     | Rejestracja użytkownika     |
-| POST   | `/auth/login`        | Logowanie                   |
-| GET    | `/users`             | Lista użytkowników          |
-| GET/POST | `/users/<username>` | Pobierz / utwórz / zaktualizuj profil |
-| GET    | `/messages`          | Wszystkie wiadomości        |
-| POST   | `/messages`          | Wyślij wiadomość            |
-| DELETE | `/messages/<id>`     | Usuń wiadomość              |
-| GET    | `/weather`           | Dane pogodowe               |
-
 > Bezpieczeństwo: hasła są przechowywane jako skróty **Werkzeug** — nigdy w postaci jawnej.
-
----
-
-## Hosting & wdrożenie
-
-- **Frontend (Web)** — build z `PlumaFlutter/build/web` wgrywany na **GitHub Pages**
-  (gałąź `gh-pages`), pod adresem repo `wegiel360/pluma`.
-- **Backend (API)** — Flask na zewnętrznym hostingu API (np. **Render**, **Railway**).
-  Frontend na GitHub Pages wskazuje na adres tego API przez `--dart-define=API_BASE_URL`.
-- **CORS** — w `flask_app.py` aktywny `CORS(app)`, więc żądania z domeny GitHub Pages są dozwolone.
-
----
-
-## Rozwój lokalny
-
-1. Uruchom backend:
-   ```bash
-   cd python_backend && python flask_app.py
-   ```
-2. Uruchom apkę Flutter na Windows:
-   ```bash
-   cd PlumaFlutter && flutter run -d windows
-   ```
-   (backend dostępny pod `http://localhost:5000/api`).
-
----
 
 ## Licencja
 
