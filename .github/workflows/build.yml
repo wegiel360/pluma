@@ -28,9 +28,17 @@ jobs:
         
       - name: Configure Firebase
         run: |
-          mkdir -p android/app
-          echo '${{ secrets.FIREBASE_ANDROID_CONFIG }}' > android/app/google-services.json
-          echo '${{ secrets.FIREBASE_OPTIONS_DART }}' > lib/firebase_options.dart
+          mkdir -p android/app lib
+          python3 -c "
+          import os
+          with open('android/app/google-services.json', 'w') as f:
+              f.write(os.environ['FIREBASE_ANDROID_CONFIG'])
+          with open('lib/firebase_options.dart', 'w') as f:
+              f.write(os.environ['FIREBASE_OPTIONS_DART'])
+          "
+        env:
+          FIREBASE_ANDROID_CONFIG: ${{ secrets.FIREBASE_ANDROID_CONFIG }}
+          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
         
       - name: Get dependencies
         run: flutter pub get
@@ -69,7 +77,13 @@ jobs:
       - name: Configure Firebase
         run: |
           mkdir -p lib
-          echo '${{ secrets.FIREBASE_OPTIONS_DART }}' > lib/firebase_options.dart
+          python3 -c "
+          import os
+          with open('lib/firebase_options.dart', 'w') as f:
+              f.write(os.environ['FIREBASE_OPTIONS_DART'])
+          "
+        env:
+          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
 
       - name: Get dependencies
         run: flutter pub get
@@ -128,7 +142,13 @@ jobs:
       - name: Configure Firebase
         run: |
           mkdir -p lib
-          echo '${{ secrets.FIREBASE_OPTIONS_DART }}' > lib/firebase_options.dart
+          python3 -c "
+          import os
+          with open('lib/firebase_options.dart', 'w') as f:
+              f.write(os.environ['FIREBASE_OPTIONS_DART'])
+          "
+        env:
+          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
         
       - name: Get dependencies
         run: flutter pub get
