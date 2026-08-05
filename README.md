@@ -3,7 +3,7 @@
 <div align="center">
 <img src="PlumaFlutter/assets/logo-pluma.png" alt="Pluma Logo" width="160" />
 <br/><br/>
-<b>Nowoczesny komunikator i pulpit w stylu Liquid Glass.</b><br/>
+<b>Nowoczesny komunikator w stylu Płynny Żel.</b><br/>
 Flutter · Flask API · SQLite
 </div>
 
@@ -24,9 +24,9 @@ Flutter · Flask API · SQLite
 ## O projekcie
 
 **Pluma** to komunikator (messenger) zintegrowany z pulpitem (dashboard),
-napisany w **Flutter**, z backendem w **Python/Flask** i bazą **SQLite**.
+napisany w **Flutter**.
 
-Interfejs wyróżnia estetyka **Liquid Glass** — półprzezroczyste panele ze
+Interfejs wyróżnia estetyka **Płynny Żel** — półprzezroczyste panele ze
 szkłem rozmytym, pastelowa paleta oraz delikatne, irydescencyjne obramowania.
 Aplikacja działa na **Windows**, **Android** oraz w **przeglądarce** (Web / GitHub Pages).
 
