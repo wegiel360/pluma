@@ -22,8 +22,7 @@ Flutter · GH Pages · Firebase
 
 ## O projekcie
 
-**Pluma** to komunikator (messenger) zintegrowany z pulpitem (dashboard),
-napisany w **Flutter**.
+**Pluma** to komunikator zintegrowany z pulpitem, napisany w **Flutter**.
 
 Interfejs wyróżnia estetyka **Płynny Żel** — półprzezroczyste panele ze
 szkłem rozmytym, pastelowa paleta oraz delikatne, irydescencyjne obramowania.
@@ -36,9 +35,9 @@ Aplikacja działa na **Windows**, **Android** oraz w **przeglądarce** (Web / Gi
 - **Autoryzacja** — rejestracja i logowanie z hashowaniem haseł (Werkzeug).
 - **Wiadomości** — wysyłanie, edycja, usuwanie i podgląd konwersacji w czasie rzeczywistym (polling).
 - **Profile** — dostosowywanie avatara, banera, koloru akcentu i opisu.
-- **Pogoda** — panel pogodowy pobierany z zewnętrznego API.
+- **Pogoda** — panel pogodowy pobierany z zewnętrznego API OpenMeteo.
 - **Konta lokalne** — zapamiętywanie zapisanych kont na urządzeniu.
-- **Motywy** — płynne szkło (glassmorphism), spójna paleta kolorów Liquid Glass.
+- **Motywy** — płynny żel (glassmorphism), spójna paleta kolorów Płynny Żel.
 
 ---
 
