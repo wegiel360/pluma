@@ -1,24 +1,9 @@
-# Pluma - Nowoczesny komunikator w stylu Płynny Żel
-
 <div align="center">
+<b>Pluma<b>
 <img src="PlumaFlutter/assets/logo-pluma.png" alt="Pluma Logo" width="160" />
 <br/><br/>
 Flutter · GH Pages · Firebase
 </div>
-
----
-
-## Spis treści
-
-- [O projekcie](#o-projekcie)
-- [Funkcje](#funkcje)
-- [Struktura repozytorium](#struktura-repozytorium)
-- [Frontend — aplikacja Flutter](#frontend--aplikacja-flutter)
-- [Backend — API Flask](#backend--api-flask)
-- [Hosting & wdrożenie](#hosting--wdrożenie)
-- [Rozwój lokalny](#rozwój-lokalny)
-
----
 
 ## O projekcie
 
