@@ -17,6 +17,8 @@ abstract class PlumaApi {
     String? pw,
     String? theme,
     String? themeId,
+    String? defaultCity,
+    String? defaultCountry,
   });
 
   Future<void> sendMessage({

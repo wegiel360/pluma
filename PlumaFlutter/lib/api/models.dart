@@ -10,6 +10,8 @@ class UserProfile {
   final String theme;
   final String themeId;
   final int createdAt;
+  final String defaultCity;
+  final String defaultCountry;
 
   const UserProfile({
     required this.username,
@@ -23,6 +25,8 @@ class UserProfile {
     this.theme = '',
     this.themeId = '',
     this.createdAt = 0,
+    this.defaultCity = '',
+    this.defaultCountry = '',
   });
 
   factory UserProfile.fromMap(Map<String, dynamic> json) {
@@ -37,9 +41,11 @@ class UserProfile {
       pw: (json['pw'] ?? '').toString(),
       theme: (json['theme'] ?? '').toString(),
       themeId: (json['themeId'] ?? '').toString(),
-      createdAt: (json['createdAt'] ?? 0) is int
+       createdAt: (json['createdAt'] ?? 0) is int
           ? json['createdAt'] as int
           : int.tryParse((json['createdAt'] ?? '0').toString()) ?? 0,
+      defaultCity: (json['defaultCity'] ?? '').toString(),
+      defaultCountry: (json['defaultCountry'] ?? '').toString(),
     );
   }
 
@@ -54,6 +60,8 @@ class UserProfile {
         'theme': theme,
         'themeId': themeId,
         'createdAt': createdAt,
+        'defaultCity': defaultCity,
+        'defaultCountry': defaultCountry,
       };
 
   Map<String, dynamic> toLocalMap() => {
@@ -73,9 +81,11 @@ class UserProfile {
       pw: (json['pw'] ?? '').toString(),
       theme: (json['theme'] ?? '').toString(),
       themeId: (json['themeId'] ?? '').toString(),
-      createdAt: (json['createdAt'] ?? 0) is int
+       createdAt: (json['createdAt'] ?? 0) is int
           ? json['createdAt'] as int
           : int.tryParse((json['createdAt'] ?? '0').toString()) ?? 0,
+      defaultCity: (json['defaultCity'] ?? '').toString(),
+      defaultCountry: (json['defaultCountry'] ?? '').toString(),
     );
   }
 
@@ -89,6 +99,8 @@ class UserProfile {
     String? pw,
     String? theme,
     String? themeId,
+    String? defaultCity,
+    String? defaultCountry,
   }) {
     return UserProfile(
       username: username,
@@ -102,6 +114,8 @@ class UserProfile {
       theme: theme ?? this.theme,
       themeId: themeId ?? this.themeId,
       createdAt: createdAt,
+      defaultCity: defaultCity ?? this.defaultCity,
+      defaultCountry: defaultCountry ?? this.defaultCountry,
     );
   }
 }

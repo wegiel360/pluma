@@ -81,7 +81,11 @@ class _HomeShellState extends State<HomeShell> {
   Widget _buildContent() {
     switch (_activeTab) {
       case TabType.pulpit:
-        return DashboardView(services: widget.services);
+        return DashboardView(
+          services: widget.services,
+          currentUser: _currentUser,
+          onUserUpdated: widget.onUserUpdated,
+        );
       case TabType.osoby:
         return MessagingView(
           services: widget.services,

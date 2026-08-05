@@ -88,6 +88,8 @@ class FlutterFireApi extends PlumaApi {
     String? pw,
     String? theme,
     String? themeId,
+    String? defaultCity,
+    String? defaultCountry,
   }) async {
     final updates = <String, dynamic>{};
     if (name != null) updates['name'] = name;
@@ -99,6 +101,8 @@ class FlutterFireApi extends PlumaApi {
     if (pw != null) updates['pw'] = pw;
     if (theme != null) updates['theme'] = theme;
     if (themeId != null) updates['themeId'] = themeId;
+    if (defaultCity != null) updates['defaultCity'] = defaultCity;
+    if (defaultCountry != null) updates['defaultCountry'] = defaultCountry;
     if (updates.isNotEmpty) {
       await _db.collection('users').doc(username).update(updates);
     }

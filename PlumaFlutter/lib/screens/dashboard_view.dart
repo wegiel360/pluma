@@ -2,6 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../api/models.dart';
 import '../api/weather_api.dart';
 import '../main.dart';
 import '../theme/glass_components.dart';
@@ -9,7 +10,14 @@ import '../theme/pluma_theme.dart';
 
 class DashboardView extends StatefulWidget {
   final AppServices services;
-  const DashboardView({super.key, required this.services});
+  final UserProfile currentUser;
+  final void Function(UserProfile) onUserUpdated;
+  const DashboardView({
+    super.key,
+    required this.services,
+    required this.currentUser,
+    required this.onUserUpdated,
+  });
 
   @override
   State<DashboardView> createState() => _DashboardViewState();
@@ -35,8 +43,25 @@ class _DashboardViewState extends State<DashboardView> {
   @override
   void initState() {
     super.initState();
-    _fetchWeather();
+    _initDefaultCity().then((_) => _fetchWeather());
     _refresh = Timer.periodic(const Duration(hours: 1), (_) => _fetchWeather());
+  }
+
+  Future<void> _initDefaultCity() async {
+    final user = widget.currentUser;
+    if (user.defaultCity.isNotEmpty) {
+      try {
+        final results = await widget.services.weatherApi.searchCities(user.defaultCity);
+        if (results.isNotEmpty && mounted) {
+          final match = results.firstWhere(
+            (r) => r.name.toLowerCase() == user.defaultCity.toLowerCase(),
+            orElse: () => results.first,
+          );
+          setState(() => _location = match);
+          _fetchWeather();
+        }
+      } catch (_) {}
+    }
   }
 
   @override
@@ -85,9 +110,22 @@ class _DashboardViewState extends State<DashboardView> {
       _results = [];
     });
     _fetchWeather();
+    _setAsDefault(loc);
   }
 
-  String _pad(int v) => v.toString().padLeft(2, '0');
+  Future<void> _setAsDefault(CityResult loc) async {
+    final user = widget.currentUser;
+    final alreadyDefault =
+        user.defaultCity.toLowerCase() == loc.name.toLowerCase();
+    if (alreadyDefault) return;
+    final updated = user.copyWith(
+      defaultCity: loc.name,
+      defaultCountry: loc.country ?? '',
+    );
+    widget.onUserUpdated(updated);
+    await widget.services.api.updateUser(user.username,
+        defaultCity: loc.name, defaultCountry: loc.country);
+  }
 
   @override
   Widget build(BuildContext context) {
