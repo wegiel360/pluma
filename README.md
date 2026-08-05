@@ -1,4 +1,4 @@
-<b>Pluma<b>
+# <b>Pluma<b>
 <div align="center">
 <img src="PlumaFlutter/assets/logo-pluma.png" alt="Pluma Logo" width="160" />
 <br/><br/>
