@@ -12,42 +12,22 @@
 - [ ] Usunięcie referencji do lite z `main.dart` i routingu
 
 ### 0.2 Bezpieczeństwo API Keys
-- [ ] Przeniesienie `OPENROUTER_API_KEY_MIETEK` do GitHub Secrets
-- [ ] Firebase config w GitHub Secrets (`FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_APP_ID`)
-- [ ] Aktualizacja `.gitignore`:
-  ```
-  .env
-  .env.local
-  .env.*.local
-  firebase_options.dart
-  **/android/app/google-services.json
-  **/ios/Runner/GoogleService-Info.plist
-  ```
+- [x] Przeniesienie `OPENROUTER_API_KEY_MIETEK` do GitHub Secrets
+- [x] Firebase config w GitHub Secrets (`FIREBASE_API_KEY`, `FIREBASE_AUTH_DOMAIN`, `FIREBASE_PROJECT_ID`, `FIREBASE_STORAGE_BUCKET`, `FIREBASE_MESSAGING_SENDER_ID`, `FIREBASE_APP_ID`)
+- [x] Aktualizacja `.gitignore`
 
 ### 0.3 Firebase Rules (Produkcja)
-- [ ] Zrestryktowanie `firestore.rules`:
-  ```
-  rules_version = '2';
-  service cloud.firestore {
-    match /databases/{database}/documents {
-      match /users/{userId} {
-        allow read, write: if request.auth != null && request.auth.token.email_verified == true;
-      }
-      match /dms/{dmId}/messages/{msgId} {
-        allow read, write: if request.auth != null;
-      }
-      match /invitations/{invitationId} {
-        allow read, write: if request.auth != null;
-      }
-    }
-  }
-  ```
+- [x] Zrestryktowanie `firestore.rules` (users/dms/invitations/ai_config/ai_logs)
 
 ---
 
 ## Faza 1: System AI - Mietek (Priorytet: WYSOKI)
 
 ### 1.1 Firebase Collections - AI Config
+- [x] Utworzenie użytkownika `@mietek` w Firebase Auth (`mietek@pluma.ai`)
+- [ ] Ustawienie custom claims `isAI: true` na użytkowniku @mietek
+- [ ] Utworzenie dokumentu `ai_config/mietek` w Firestore
+- [x] Usunięcie `google-services.json` z repo root (usunięte z git tracking)
 ```
 ai_config/{username}:
   - isAI: true
@@ -62,6 +42,37 @@ ai_config/{username}:
     - delete: false
     - edit: false
 ```
+
+### Setup Instructions - Firebase Admin Operations
+
+The following steps require Firebase Admin SDK credentials (service account key) or Firebase CLI login:
+
+**1. Set custom claims on @mietek user:**
+```bash
+firebase login
+firebase auth:export /tmp/users.json --format=json
+# Edit the file to add customClaims: {"isAI": true} for mietek
+firebase auth:import /tmp/users.json --hash-algo=SCRYPT
+```
+Or via Firebase Console: Authentication → @mietek → Set custom claims → `{"isAI": true}`
+
+**2. Create ai_config/mietek Firestore document:**
+First, update Firestore rules to allow ai_config access (already done in `firestore.rules`).
+Then create the document with:
+```json
+{
+  "model": "openai/gpt-oss-20b",
+  "prompt": "You are @mietek, an AI assistant for Pluma messenger.",
+  "tools": ["openmeteo", "local_time"],
+  "trigger": "@mietek",
+  "permissions": ["read_messages", "send_messages"],
+  "apiKeyRef": "OPENROUTER_API_KEY_MIETEK",
+  "createdAt": "2026-08-05T19:00:00Z"
+}
+```
+
+**3. Firebase Functions (requires Blaze plan):**
+The user declined the Blaze plan. Alternative: use Cloud Run (free tier) or a serverless function on another platform.
 
 ### 1.2 Backend - Cloud Function / Edge Function
 - [ ] Endpoint `/api/ai/mietek` (HTTP POST)
