@@ -9,7 +9,7 @@ Flutter · GH Pages · Firebase
 
 **Pluma** to komunikator zintegrowany z pulpitem, napisany w **Flutter**.
 
-Interfejs wyróżnia estetyka **Płynny Żel** — półprzezroczyste panele ze
+Interfejs wyróżnia estetyka **Płynny Żel** - półprzezroczyste panele ze
 szkłem rozmytym, pastelowa paleta oraz delikatne, irydescencyjne obramowania.
 Aplikacja działa na **Windows**, **Android** oraz w **przeglądarce** (Web / GitHub Pages).
 
