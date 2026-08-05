@@ -1,28 +1,43 @@
 # Pluma
+
 <div align="center">
 <img src="PlumaFlutter/assets/logo-pluma.png" alt="Pluma Logo" width="160" />
 <br/><br/>
-Flutter · GH Pages · Firebase
+Flutter · Firebase · GitHub Pages · GitHub Actions
 </div>
 
 ## O projekcie
 
-**Pluma** to komunikator zintegrowany z pulpitem, napisany w **Flutter**.
+**Pluma** to komunikator z wyglądem **Płynny Żel** — półprzezroczyste panele,
+pastelowa paleta, delikatne irydescencyjne obramowania.
 
-Interfejs wyróżnia estetyka **Płynny Żel** - półprzezroczyste panele ze
-szkłem rozmytym, pastelowa paleta oraz delikatne, irydescencyjne obramowania.
-Aplikacja działa na **Windows**, **Android** oraz w **przeglądarce** (Web / GitHub Pages).
+Aplikacja działa na **Web**, **Android** (APK) oraz **Linux** (AppImage).
+
+**Linki:**
+- [Wersja pełna (Flutter)](https://wegiel360.github.io/pluma/)
+- [Wersja Lite (HTML/CSS/JS)](https://wegiel360.github.io/pluma/lite.html)
 
 ---
 
 ## Funkcje
 
-- **Autoryzacja** — rejestracja i logowanie z hashowaniem haseł (Werkzeug).
-- **Wiadomości** — wysyłanie, edycja, usuwanie i podgląd konwersacji w czasie rzeczywistym (polling).
-- **Profile** — dostosowywanie avatara, banera, koloru akcentu i opisu.
-- **Pogoda** — panel pogodowy pobierany z zewnętrznego API OpenMeteo.
-- **Konta lokalne** — zapamiętywanie zapisanych kont na urządzeniu.
-- **Motywy** — płynny żel (glassmorphism), spójna paleta kolorów Płynny Żel.
+- **Autoryzacja** — logowanie bez emaila (nickname + hasło)
+- **Wiadomości** — DM między znajomymi (wspólna baza Firebase)
+- **Zaproszenia** — system zaproszeń do znajomych
+- **Profile** — avatar (PFP), baner, kolor, bio (zapisane w Firebase)
+- **Pogoda** — Open-Meteo API, wyszukiwarka miast, prognoza 24h
+- **Auto-login** — sesja zapamiętywana po odświeżeniu strony
+
+---
+
+## Wersje
+
+| Wersja | Technologia | Target |
+|--------|-------------|--------|
+| **Pełna** | Flutter Web + Firebase | Nowoczesne przeglądarki |
+| **Lite** | HTML5 + CSS3 + JS + Firebase | Firefox 52.9+, IE11 (częściowo) |
+| **Android** | Flutter APK | Android 5.0+ |
+| **Linux** | Flutter + AppImage | Linux x64 |
 
 ---
 
@@ -30,50 +45,62 @@ Aplikacja działa na **Windows**, **Android** oraz w **przeglądarce** (Web / Gi
 
 ```
 pluma/
-├── PlumaFlutter/          # Frontend — aplikacja Flutter (Windows/Android/Web)
+├── .github/workflows/       # CI/CD
+│   └── build.yml            # Build APK + AppImage + Web deploy
+├── PlumaFlutter/            # Aplikacja Flutter
 │   ├── lib/
-│   │   ├── api/           # Warstwa danych (klient HTTP, modele)
-│   │   ├── theme/         # Motyw Liquid Glass i komponenty Glass
-│   │   └── screens/       # Ekrany (login, dashboard, messaging, profile)
-│   ├── assets/            # Loga, obrazy, tła
-│   └── test/              # Testy Flutter
-├── python_backend/        # Backend — API Flask (SQLite)
-│   ├── flask_app.py       # Główna aplikacja Flask (CORS, blueprinty)
-│   ├── auth.py            # Rejestracja / logowanie (Werkzeug)
-│   ├── messages.py        # Wiadomości
-│   ├── users.py           # Profile użytkowników
-│   ├── weather.py         # Pogoda
-│   └── database.py        # Baza SQLite + migracje
-└── docs/                  # Dokumentacja pomocnicza
+│   │   ├── api/             # Firebase/Firedart API layer
+│   │   ├── screens/         # Ekrany (login, dashboard, messaging, profile)
+│   │   └── theme/           # Motyw Płynny Żel
+│   ├── assets/              # Loga, obrazy, fonty
+│   ├── web/                 # Web config + lite.html
+│   └── firebase_options.dart
+├── docs/                    # Dokumentacja
+└── README.md
 ```
 
 ---
 
-## Frontend - aplikacja Flutter
+## Firebase
 
-### Wymagania
+**Kolekcje:**
+- `users/{username}` — profile użytkowników
+- `dms/{user1_user2}/messages/{msgId}` — wiadomości direct
+- `invitations/{invitationId}` — zaproszenia
 
-- Flutter 3.x (Dart 3.x)
-- Dla Windows: Visual Studio z komponentem "Desktop development with C++"
-- Dla Androida: Android SDK + JDK
+**Bezpieczeństwo:**
+- Reguły Firestore: `allow read, write: if true;` (dev)
+- Hasła przechywane w Firebase (nie w localStorage)
 
-### Budowanie aplikacji
+---
+
+## Budowanie lokalnie
 
 ```bash
 cd PlumaFlutter
 flutter pub get
 
-# Windows (desktop)
-flutter build windows --release
+# Web
+flutter build web --release --base-href "/pluma/"
 
-# Android (APK)
+# Android
 flutter build apk --release
 
-# Web (produkcja, np. GitHub Pages)
-flutter build web --release --base-href "/pluma/" --dart-define=API_BASE_URL=<URL_API>
+# Linux
+flutter config --enable-linux-desktop
+flutter build linux --release
 ```
 
-> Bezpieczeństwo: hasła są przechowywane jako skróty **Werkzeug** — nigdy w postaci jawnej.
+## GitHub Actions
+
+Workflow automatycznie buduje:
+- **APK** (Android)
+- **AppImage** (Linux x64)
+- **Web** + deploy na GitHub Pages
+
+Trigger: push do `main` lub ręcznie (`workflow_dispatch`).
+
+---
 
 ## Licencja
 
