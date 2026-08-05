@@ -8,12 +8,16 @@ env/
 *.db
 *.sqlite3
 
-# ===== Flask / secrets =====
+# ===== Secrets / API Keys =====
 .env
 .env.local
 .env.production
+.env.*.local
 *.pem
 *.key
+firebase_options.dart
+**/android/app/google-services.json
+**/ios/Runner/GoogleService-Info.plist
 
 # ===== Flutter / Dart =====
 .dart_tool/
