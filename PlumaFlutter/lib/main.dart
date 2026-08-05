@@ -36,7 +36,6 @@ class PlumaApp extends StatelessWidget {
   }
 }
 
-/// Shared application services passed down to screens.
 class AppServices {
   final PlumaApi api = createApi();
   final WeatherApi weatherApi = WeatherApi();
@@ -44,7 +43,6 @@ class AppServices {
   static const Color defaultAccent = PlumaColors.primary;
 }
 
-/// Entry point invoked after successful login.
 class RootScreen extends StatefulWidget {
   final UserProfile user;
   const RootScreen({super.key, required this.user});
@@ -92,11 +90,9 @@ class _RootScreenState extends State<RootScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
-      title: 'Pluma',
-      debugShowCheckedModeBanner: false,
-      theme: PlumaTheme.build(_accentColor),
-      home: HomeShell(
+    return Theme(
+      data: PlumaTheme.build(_accentColor),
+      child: HomeShell(
         services: _services,
         currentUser: _currentUser,
         allUsers: _allUsers,

@@ -1,5 +1,3 @@
-import 'dart:async';
-
 import 'package:flutter/material.dart';
 
 import '../api/models.dart';
@@ -26,19 +24,11 @@ class InvitationsView extends StatefulWidget {
 class _InvitationsViewState extends State<InvitationsView> {
   List<Invitation> _invitations = [];
   bool _loading = true;
-  Timer? _poll;
 
   @override
   void initState() {
     super.initState();
     _load();
-    _poll = Timer.periodic(const Duration(seconds: 3), (_) => _load());
-  }
-
-  @override
-  void dispose() {
-    _poll?.cancel();
-    super.dispose();
   }
 
   Future<void> _load() async {
@@ -141,6 +131,8 @@ class _InvitationsViewState extends State<InvitationsView> {
                           ),
                         )
                       : ListView.builder(
+                          addAutomaticKeepAlives: false,
+                          addRepaintBoundaries: true,
                           itemCount: _invitations.length,
                           itemBuilder: (context, i) {
                             final inv = _invitations[i];

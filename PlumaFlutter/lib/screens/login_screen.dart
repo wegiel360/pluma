@@ -253,46 +253,48 @@ class _LoginScreenState extends State<LoginScreen> {
                         runSpacing: 8,
                         alignment: WrapAlignment.center,
                         children: _savedAccounts.map((acc) {
-                          return GestureDetector(
-                            onTap: () => _quickLogin(acc.username),
-                            child: Container(
-                              padding: const EdgeInsets.symmetric(
-                                horizontal: 12,
-                                vertical: 8,
-                              ),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.05),
-                                borderRadius: BorderRadius.circular(16),
-                                border: Border.all(
-                                  color: Colors.white.withValues(alpha: 0.1),
+                          return RepaintBoundary(
+                            child: GestureDetector(
+                              onTap: () => _quickLogin(acc.username),
+                              child: Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 12,
+                                  vertical: 8,
                                 ),
-                              ),
-                              child: Row(
-                                mainAxisSize: MainAxisSize.min,
-                                children: [
-                                  NeonAvatar(image: acc.pfp, size: 28),
-                                  const SizedBox(width: 8),
-                                  Text(
-                                    '@${acc.username}',
-                                    style: const TextStyle(
-                                      color: PlumaColors.onSurface,
-                                      fontSize: 12,
-                                      fontFamily: 'monospace',
-                                    ),
+                                decoration: BoxDecoration(
+                                  color: Colors.white.withValues(alpha: 0.05),
+                                  borderRadius: BorderRadius.circular(16),
+                                  border: Border.all(
+                                    color: Colors.white.withValues(alpha: 0.1),
                                   ),
-                                  const SizedBox(width: 4),
-                                  InkWell(
-                                    onTap: () => _removeSaved(acc.username),
-                                    child: const Padding(
-                                      padding: EdgeInsets.all(2),
-                                      child: Icon(
-                                        Icons.close,
-                                        size: 14,
-                                        color: PlumaColors.onSurfaceVariant,
+                                ),
+                                child: Row(
+                                  mainAxisSize: MainAxisSize.min,
+                                  children: [
+                                    NeonAvatar(image: acc.pfp, size: 28),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      '@${acc.username}',
+                                      style: const TextStyle(
+                                        color: PlumaColors.onSurface,
+                                        fontSize: 12,
+                                        fontFamily: 'monospace',
                                       ),
                                     ),
-                                  ),
-                                ],
+                                    const SizedBox(width: 4),
+                                    InkWell(
+                                      onTap: () => _removeSaved(acc.username),
+                                      child: const Padding(
+                                        padding: EdgeInsets.all(2),
+                                        child: Icon(
+                                          Icons.close,
+                                          size: 14,
+                                          color: PlumaColors.onSurfaceVariant,
+                                        ),
+                                      ),
+                                    ),
+                                  ],
+                                ),
                               ),
                             ),
                           );

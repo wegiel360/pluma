@@ -1,4 +1,4 @@
-import 'dart:async';
+import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -38,13 +38,9 @@ class _MessagingViewState extends State<MessagingView> {
   String? _attachedBase64;
   String? _attachedType;
   bool _isCompressing = false;
-  Timer? _poll;
   bool _mobileShowChat = false;
   bool _showAllUsers = false;
   List<String> _friendsList = [];
-  bool _suppressPoll = false;
-
-  static const _reactionEmojis = ['👍', '❤️', '🤣', '🫪', '🤯', '💀'];
 
   @override
   void initState() {
@@ -55,7 +51,6 @@ class _MessagingViewState extends State<MessagingView> {
 
   @override
   void dispose() {
-    _poll?.cancel();
     _inputCtrl.dispose();
     super.dispose();
   }
@@ -64,7 +59,6 @@ class _MessagingViewState extends State<MessagingView> {
     final others = _filteredPeople();
     if (others.isNotEmpty && _selected == null) {
       _selected = others.first;
-      _startPolling();
     }
   }
 
@@ -93,50 +87,12 @@ class _MessagingViewState extends State<MessagingView> {
     } catch (_) {}
   }
 
-  void _startPolling() {
-    _poll?.cancel();
-    final sel = _selected;
-    if (sel == null) return;
-    _poll = Timer.periodic(const Duration(seconds: 2), (_) => _loadMessages());
-    _loadMessages();
-  }
-
-  Future<void> _loadMessages() async {
-    if (_suppressPoll) return;
-    final sel = _selected;
-    if (sel == null) return;
-    try {
-      final msgs = await widget.services.api
-          .getConversation(widget.currentUser.username, sel.username);
-      if (mounted && _selected?.username == sel.username) {
-        setState(() {
-          final serverMap = {for (var m in msgs) m.id: m};
-          final merged = _messages.map((local) {
-            final server = serverMap[local.id];
-            if (server != null && local.edited &&
-                (local.updatedAt ?? 0) > (server.updatedAt ?? 0)) {
-              return local;
-            }
-            return server ?? local;
-          }).toList();
-          for (var s in msgs) {
-            if (!merged.any((m) => m.id == s.id)) merged.add(s);
-          }
-          _messages = merged;
-        });
-        await widget.services.api.markConversationRead(
-          widget.currentUser.username, sel.username);
-      }
-    } catch (_) {}
-  }
-
   void _selectPerson(UserProfile user) {
     setState(() {
       _selected = user;
       _messages = [];
       _mobileShowChat = true;
     });
-    _startPolling();
   }
 
   Future<void> _send() async {
@@ -144,13 +100,14 @@ class _MessagingViewState extends State<MessagingView> {
     final text = _inputCtrl.text.trim();
     if (sel == null || (text.isEmpty && _attachedBase64 == null)) return;
 
+    final now = DateTime.now();
     final optimistic = Message(
-      id: 'temp-${DateTime.now().millisecondsSinceEpoch}',
+      id: 'temp-${now.millisecondsSinceEpoch}',
       sender: widget.currentUser.username,
       recipient: sel.username,
       text: text,
-      timestamp: DateFormatShort.time(),
-      createdAt: DateTime.now().millisecondsSinceEpoch,
+      timestamp: '${_pad(now.hour)}:${_pad(now.minute)}',
+      createdAt: now.millisecondsSinceEpoch,
       isImage: _attachedType == 'image',
       isVideo: _attachedType == 'video',
       imageUrl: _attachedType == 'image' ? _attachedBase64 : null,
@@ -187,9 +144,11 @@ class _MessagingViewState extends State<MessagingView> {
     }
   }
 
+  String _pad(int v) => v.toString().padLeft(2, '0');
+
   Future<void> _pickFile() async {
     final picker = ImagePicker();
-    final source = await _chooseSource();
+    final source = await showImageSourcePicker(context);
     if (source == null) return;
     setState(() => _isCompressing = true);
     try {
@@ -234,26 +193,6 @@ class _MessagingViewState extends State<MessagingView> {
             leading: const Icon(Icons.videocam),
             title: const Text('Wideo'),
             onTap: () => Navigator.pop(ctx, 'video'),
-          ),
-        ]),
-      ),
-    );
-  }
-
-  Future<ImageSource?> _chooseSource() async {
-    return showModalBottomSheet<ImageSource>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          ListTile(
-            leading: const Icon(Icons.photo_library),
-            title: const Text('Galeria'),
-            onTap: () => Navigator.pop(ctx, ImageSource.gallery),
-          ),
-          ListTile(
-            leading: const Icon(Icons.photo_camera),
-            title: const Text('Aparat'),
-            onTap: () => Navigator.pop(ctx, ImageSource.camera),
           ),
         ]),
       ),
@@ -325,7 +264,6 @@ class _MessagingViewState extends State<MessagingView> {
               Navigator.pop(ctx);
               try {
                 await widget.services.api.editMessage(msg.id, newText);
-                _suppressPoll = true;
                 setState(() {
                   _messages = _messages.map((m) {
                     if (m.id == msg.id) {
@@ -336,14 +274,12 @@ class _MessagingViewState extends State<MessagingView> {
                         updatedAt: DateTime.now().millisecondsSinceEpoch,
                         isImage: m.isImage, isVideo: m.isVideo,
                         imageUrl: m.imageUrl, videoUrl: m.videoUrl,
-                        status: m.status, reactions: m.reactions,
+                        status: m.status,
                       );
                     }
                     return m;
                   }).toList();
                 });
-                await Future.delayed(const Duration(seconds: 3));
-                _suppressPoll = false;
               } catch (_) {
                 _showSnack('Blad edycji wiadomosci.');
               }
@@ -352,35 +288,6 @@ class _MessagingViewState extends State<MessagingView> {
                 style: TextStyle(color: PlumaColors.primary)),
           ),
         ],
-      ),
-    );
-  }
-
-  void _showReactionsPicker(String messageId) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: PlumaColors.surface,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (ctx) => SafeArea(
-        child: Padding(
-          padding: const EdgeInsets.symmetric(vertical: 16, horizontal: 24),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceAround,
-            children: _reactionEmojis.map((emoji) {
-              return GestureDetector(
-                onTap: () async {
-                  Navigator.pop(ctx);
-                  await widget.services.api.toggleReaction(
-                      messageId, widget.currentUser.username, emoji);
-                  await _loadMessages();
-                },
-                child: Text(emoji, style: const TextStyle(fontSize: 28)),
-              );
-            }).toList(),
-          ),
-        ),
       ),
     );
   }
@@ -412,12 +319,6 @@ class _MessagingViewState extends State<MessagingView> {
                 Clipboard.setData(ClipboardData(text: msg.text));
                 _showSnack('Skopiowano do schowka.');
               },
-            ),
-            ListTile(
-              leading: const Icon(Icons.emoji_emotions, color: PlumaColors.primary),
-              title: const Text('Reaguj',
-                  style: TextStyle(color: PlumaColors.onSurface)),
-              onTap: () { Navigator.pop(ctx); _showReactionsPicker(msg.id); },
             ),
             if (isMe)
               ListTile(
@@ -572,41 +473,45 @@ class _MessagingViewState extends State<MessagingView> {
                 )
               : ListView.builder(
                   padding: const EdgeInsets.all(10),
+                  addAutomaticKeepAlives: false,
+                  addRepaintBoundaries: true,
                   itemCount: filtered.length,
                   itemBuilder: (context, i) {
                     final u = filtered[i];
                     final isSel = _selected?.username == u.username;
-                    return ListTile(
-                      onTap: () => _selectPerson(u),
-                      leading: NeonAvatar(image: u.pfp, online: true, size: 40),
-                      title: Row(
-                        children: [
-                          Expanded(
-                            child: Text(
-                              '@${u.username}',
-                              style: TextStyle(
-                                color: isSel ? PlumaColors.primary : PlumaColors.onSurface,
-                                fontSize: 14,
-                                fontWeight: FontWeight.w700,
+                    return RepaintBoundary(
+                      child: ListTile(
+                        onTap: () => _selectPerson(u),
+                        leading: NeonAvatar(image: u.pfp, online: true, size: 40),
+                        title: Row(
+                          children: [
+                            Expanded(
+                              child: Text(
+                                '@${u.username}',
+                                style: TextStyle(
+                                  color: isSel ? PlumaColors.primary : PlumaColors.onSurface,
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                overflow: TextOverflow.ellipsis,
                               ),
-                              overflow: TextOverflow.ellipsis,
                             ),
-                          ),
-                        ],
-                      ),
-                      subtitle: Text(
-                        u.bio.isEmpty ? 'uzytkownik pluma' : u.bio,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          color: PlumaColors.onSurfaceVariant,
-                          fontSize: 12,
+                          ],
                         ),
+                        subtitle: Text(
+                          u.bio.isEmpty ? 'uzytkownik pluma' : u.bio,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: const TextStyle(
+                            color: PlumaColors.onSurfaceVariant,
+                            fontSize: 12,
+                          ),
+                        ),
+                        tileColor: isSel
+                            ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
+                            : null,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                       ),
-                      tileColor: isSel
-                          ? Theme.of(context).colorScheme.primary.withValues(alpha: 0.1)
-                          : null,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     );
                   },
                 ),
@@ -717,6 +622,8 @@ class _MessagingViewState extends State<MessagingView> {
                     Expanded(
                       child: ListView.builder(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
+                        addAutomaticKeepAlives: false,
+                        addRepaintBoundaries: true,
                         itemCount: _messages.length,
                         itemBuilder: (context, i) {
                           final m = _messages[i];
@@ -728,9 +635,7 @@ class _MessagingViewState extends State<MessagingView> {
                   ],
                 ),
         ),
-        // Rich text toolbar
         _buildToolbar(color),
-        // Input
         Container(
           padding: const EdgeInsets.all(12),
           decoration: const BoxDecoration(
@@ -888,112 +793,117 @@ class _MessagingViewState extends State<MessagingView> {
 
   Widget _messageBubble(Message m, bool isMe, UserProfile peer) {
     final color = Theme.of(context).colorScheme.primary;
-    return Align(
-      alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
-      child: Container(
-        margin: const EdgeInsets.symmetric(vertical: 4),
-        constraints: const BoxConstraints(maxWidth: 320),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            if (!isMe) ...[
-              NeonAvatar(image: peer.pfp, size: 28),
-              const SizedBox(width: 8),
-            ],
-            Flexible(
-              child: GestureDetector(
-                onLongPress: () => _showMessageMenu(m, isMe),
-                child: Container(
-                  padding: const EdgeInsets.all(12),
-                  decoration: BoxDecoration(
-                    color: isMe
-                        ? color.withValues(alpha: 0.2)
-                        : Colors.white.withValues(alpha: 0.05),
-                    borderRadius: BorderRadius.only(
-                      topLeft: const Radius.circular(18),
-                      topRight: const Radius.circular(18),
-                      bottomLeft: Radius.circular(isMe ? 18 : 4),
-                      bottomRight: Radius.circular(isMe ? 4 : 18),
-                    ),
-                    border: Border.all(
+    return RepaintBoundary(
+      child: Align(
+        alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
+        child: Container(
+          margin: const EdgeInsets.symmetric(vertical: 4),
+          constraints: const BoxConstraints(maxWidth: 320),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.end,
+            children: [
+              if (!isMe) ...[
+                NeonAvatar(image: peer.pfp, size: 28),
+                const SizedBox(width: 8),
+              ],
+              Flexible(
+                child: GestureDetector(
+                  onLongPress: () => _showMessageMenu(m, isMe),
+                  child: Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
                       color: isMe
                           ? color.withValues(alpha: 0.2)
-                          : Colors.white.withValues(alpha: 0.1),
+                          : Colors.white.withValues(alpha: 0.05),
+                      borderRadius: BorderRadius.only(
+                        topLeft: const Radius.circular(18),
+                        topRight: const Radius.circular(18),
+                        bottomLeft: Radius.circular(isMe ? 18 : 4),
+                        bottomRight: Radius.circular(isMe ? 4 : 18),
+                      ),
+                      border: Border.all(
+                        color: isMe
+                            ? color.withValues(alpha: 0.2)
+                            : Colors.white.withValues(alpha: 0.1),
+                      ),
                     ),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      if (m.isImage && m.imageUrl != null)
-                        ClipRRect(
-                          borderRadius: BorderRadius.circular(8),
-                          child: m.imageUrl!.startsWith('data:')
-                              ? Image.network(m.imageUrl!, width: 220, fit: BoxFit.contain,
-                                  errorBuilder: (_, _, _) => const Icon(Icons.broken_image, size: 60))
-                              : Image.network(m.imageUrl!, width: 220, fit: BoxFit.contain,
-                                  errorBuilder: (_, _, _) => const Icon(Icons.broken_image, size: 60)),
-                        ),
-                      if (m.isVideo && m.videoUrl != null)
-                        Container(
-                          width: 220, height: 120,
-                          decoration: BoxDecoration(
-                            color: Colors.black54,
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        if (m.isImage && m.imageUrl != null)
+                          ClipRRect(
                             borderRadius: BorderRadius.circular(8),
+                            child: _buildMessageImage(m.imageUrl!),
                           ),
-                          child: const Center(
-                            child: Icon(Icons.play_circle, size: 48),
-                          ),
-                        ),
-                      if (m.text.isNotEmpty)
-                        _buildFormattedText(m.text),
-                      if (m.edited)
-                        Padding(
-                          padding: const EdgeInsets.only(top: 2),
-                          child: Text(
-                            '(edytowano)',
-                            style: TextStyle(
-                              color: PlumaColors.onSurfaceVariant.withValues(alpha: 0.5),
-                              fontSize: 9,
-                              fontStyle: FontStyle.italic,
-                              fontFamily: 'monospace',
+                        if (m.isVideo && m.videoUrl != null)
+                          Container(
+                            width: 220, height: 120,
+                            decoration: BoxDecoration(
+                              color: Colors.black54,
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                            child: const Center(
+                              child: Icon(Icons.play_circle, size: 48),
                             ),
                           ),
-                        ),
-                      if (m.reactions.isNotEmpty) ...[
-                        const SizedBox(height: 4),
-                        Wrap(
-                          spacing: 4,
-                          runSpacing: 2,
-                          children: _buildReactionChips(m),
+                        if (m.text.isNotEmpty)
+                          _buildFormattedText(m.text),
+                        if (m.edited)
+                          Padding(
+                            padding: const EdgeInsets.only(top: 2),
+                            child: Text(
+                              '(edytowano)',
+                              style: TextStyle(
+                                color: PlumaColors.onSurfaceVariant.withValues(alpha: 0.5),
+                                fontSize: 9,
+                                fontStyle: FontStyle.italic,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ),
+                        const SizedBox(height: 6),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            _buildStatusIcon(m, isMe),
+                            Text(
+                              m.timestamp,
+                              style: TextStyle(
+                                color: isMe
+                                    ? color.withValues(alpha: 0.8)
+                                    : PlumaColors.onSurfaceVariant.withValues(alpha: 0.6),
+                                fontSize: 9,
+                                fontFamily: 'monospace',
+                              ),
+                            ),
+                          ],
                         ),
                       ],
-                      const SizedBox(height: 6),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          _buildStatusIcon(m, isMe),
-                          Text(
-                            m.timestamp,
-                            style: TextStyle(
-                              color: isMe
-                                  ? color.withValues(alpha: 0.8)
-                                  : PlumaColors.onSurfaceVariant.withValues(alpha: 0.6),
-                              fontSize: 9,
-                              fontFamily: 'monospace',
-                            ),
-                          ),
-                        ],
-                      ),
-                    ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
+  }
+
+  Widget _buildMessageImage(String url) {
+    if (url.startsWith('data:')) {
+      try {
+        final base64Str = url.split(',').last;
+        final bytes = base64Decode(base64Str);
+        return Image.memory(bytes, width: 220, fit: BoxFit.contain,
+            errorBuilder: (_, _, _) => const Icon(Icons.broken_image, size: 60));
+      } catch (_) {
+        return const Icon(Icons.broken_image, size: 60);
+      }
+    }
+    return Image.network(url, width: 220, fit: BoxFit.contain,
+        errorBuilder: (_, _, _) => const Icon(Icons.broken_image, size: 60));
   }
 
   Widget _buildFormattedText(String text) {
@@ -1009,7 +919,6 @@ class _MessagingViewState extends State<MessagingView> {
     final spans = <TextSpan>[];
     var i = 0;
     while (i < text.length) {
-      // Code blocks — highest priority, never nest inside
       if (text[i] == '`') {
         final end = text.indexOf('`', i + 1);
         if (end != -1) {
@@ -1021,7 +930,6 @@ class _MessagingViewState extends State<MessagingView> {
           continue;
         }
       }
-      // Bold: **...**
       if (i + 1 < text.length && text[i] == '*' && text[i + 1] == '*') {
         final end = _findClosing(text, i + 2, '**');
         if (end != -1) {
@@ -1034,7 +942,6 @@ class _MessagingViewState extends State<MessagingView> {
           continue;
         }
       }
-      // Strikethrough: ~~...~~
       if (i + 1 < text.length && text[i] == '~' && text[i + 1] == '~') {
         final end = _findClosing(text, i + 2, '~~');
         if (end != -1) {
@@ -1047,7 +954,6 @@ class _MessagingViewState extends State<MessagingView> {
           continue;
         }
       }
-      // Italic: _..._ (require word boundary before opening)
       if (text[i] == '_' && (i == 0 || _isWordBoundary(text[i - 1]))) {
         final end = _findClosingUnderscore(text, i + 1);
         if (end != -1 && (end + 1 >= text.length || _isWordBoundary(text[end + 1]))) {
@@ -1060,7 +966,6 @@ class _MessagingViewState extends State<MessagingView> {
           continue;
         }
       }
-      // Plain text — collect until next special char
       var j = i + 1;
       while (j < text.length && text[j] != '`' && text[j] != '*' && text[j] != '~' && text[j] != '_') {
         j++;
@@ -1089,57 +994,6 @@ class _MessagingViewState extends State<MessagingView> {
         ch == '!' || ch == '?' || ch == ';' || ch == ':' || ch == '(' ||
         ch == ')' || ch == '[' || ch == ']' || ch == '"' || ch == '\'' ||
         ch == '-' || ch == '/';
-  }
-
-  List<Widget> _buildReactionChips(Message m) {
-    final color = Theme.of(context).colorScheme.primary;
-    final grouped = <String, int>{};
-    final hasMine = <String, bool>{};
-    m.reactions.forEach((user, emoji) {
-      grouped[emoji] = (grouped[emoji] ?? 0) + 1;
-      if (user == widget.currentUser.username) hasMine[emoji] = true;
-    });
-    return grouped.entries.map((e) {
-      final isMine = hasMine[e.key] == true;
-      return GestureDetector(
-        onTap: () async {
-          await widget.services.api.toggleReaction(
-              m.id, widget.currentUser.username, e.key);
-          await _loadMessages();
-        },
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-          decoration: BoxDecoration(
-            color: isMine
-                ? color.withValues(alpha: 0.15)
-                : Colors.white.withValues(alpha: 0.05),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: isMine
-                  ? color.withValues(alpha: 0.3)
-                  : Colors.white10,
-            ),
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(e.key, style: const TextStyle(fontSize: 14)),
-              if (e.value > 1) ...[
-                const SizedBox(width: 2),
-                Text(
-                  '${e.value}',
-                  style: TextStyle(
-                    color: isMine ? color : PlumaColors.onSurfaceVariant,
-                    fontSize: 10,
-                    fontFamily: 'monospace',
-                  ),
-                ),
-              ],
-            ],
-          ),
-        ),
-      );
-    }).toList();
   }
 
   Widget _buildStatusIcon(Message m, bool isMe) {
@@ -1226,6 +1080,8 @@ class _MessagingViewState extends State<MessagingView> {
                   )
                 : ListView.builder(
                     shrinkWrap: true,
+                    addAutomaticKeepAlives: false,
+                    addRepaintBoundaries: true,
                     itemCount: others.length,
                     itemBuilder: (context, i) {
                       final u = others[i];
@@ -1335,14 +1191,5 @@ class _MessagingViewState extends State<MessagingView> {
         ],
       ),
     );
-  }
-}
-
-class DateFormatShort {
-  static String time() {
-    final now = DateTime.now();
-    final h = now.hour.toString().padLeft(2, '0');
-    final m = now.minute.toString().padLeft(2, '0');
-    return '$h:$m';
   }
 }

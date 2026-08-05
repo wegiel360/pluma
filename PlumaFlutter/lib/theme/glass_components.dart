@@ -1,54 +1,12 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
 
 import 'pluma_theme.dart';
 
-/// Animated iridescent border painter.
-class _IridescentBorderPainter extends CustomPainter {
-  final Color color;
-  final double animationValue;
-
-  _IridescentBorderPainter({
-    required this.color,
-    required this.animationValue,
-  });
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final rect = Offset.zero & size;
-    final rrect = RRect.fromRectAndRadius(rect, const Radius.circular(24));
-
-    final paint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topLeft,
-        end: Alignment.bottomRight,
-        colors: [
-          color,
-          Colors.white.withValues(alpha: 0.4),
-          color,
-          Colors.white.withValues(alpha: 0.2),
-        ],
-        stops: [
-          (animationValue % 1.0),
-          ((animationValue + 0.25) % 1.0),
-          ((animationValue + 0.5) % 1.0),
-          ((animationValue + 0.75) % 1.0),
-        ],
-      ).createShader(rect)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.5;
-
-    canvas.drawRRect(rrect, paint);
-  }
-
-  @override
-  bool shouldRepaint(_IridescentBorderPainter old) =>
-      old.animationValue != animationValue || old.color != color;
-}
-
-/// A frosted-glass card with an iridescent animated border.
-class GlassCard extends StatefulWidget {
+/// A frosted-glass card with a static iridescent border.
+class GlassCard extends StatelessWidget {
   final Widget child;
   final EdgeInsetsGeometry padding;
   final double radius;
@@ -63,65 +21,30 @@ class GlassCard extends StatefulWidget {
   });
 
   @override
-  State<GlassCard> createState() => _GlassCardState();
-}
-
-class _GlassCardState extends State<GlassCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _ctrl;
-
-  @override
-  void initState() {
-    super.initState();
-    _ctrl = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 8),
-    )..repeat();
-  }
-
-  @override
-  void dispose() {
-    _ctrl.dispose();
-    super.dispose();
-  }
-
-  @override
   Widget build(BuildContext context) {
-    final color = widget.accent ?? Theme.of(context).colorScheme.primary;
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(widget.radius),
-      clipBehavior: Clip.none,
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 32, sigmaY: 32),
-        child: AnimatedBuilder(
-          animation: _ctrl,
-          builder: (context, _) {
-            return CustomPaint(
-              painter: _IridescentBorderPainter(
-                color: color,
-                animationValue: _ctrl.value,
+    final color = accent ?? Theme.of(context).colorScheme.primary;
+    return RepaintBoundary(
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(radius),
+        clipBehavior: Clip.none,
+        child: Container(
+          padding: padding,
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(radius),
+            color: PlumaColors.surface.withValues(alpha: 0.55),
+            border: Border.all(
+              color: color.withValues(alpha: 0.15),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.3),
+                blurRadius: 20,
+                offset: const Offset(0, 10),
               ),
-              child: Container(
-                padding: widget.padding,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(widget.radius),
-                  color: PlumaColors.surface.withValues(alpha: 0.55),
-                  border: Border.all(
-                    color: color.withValues(alpha: 0.12),
-                    width: 1,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.5),
-                      blurRadius: 40,
-                      offset: const Offset(0, 20),
-                    ),
-                  ],
-                ),
-                child: widget.child,
-              ),
-            );
-          },
+            ],
+          ),
+          child: child,
         ),
       ),
     );
@@ -146,11 +69,8 @@ class BlissBackground extends StatelessWidget {
           ),
         ),
         Positioned.fill(
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 4, sigmaY: 4),
-            child: Container(
-              color: const Color(0x4D061700),
-            ),
+          child: Container(
+            color: const Color(0x4D061700),
           ),
         ),
         child,
@@ -408,4 +328,25 @@ class GlassModal extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Shared image source picker dialog.
+Future<ImageSource?> showImageSourcePicker(BuildContext context) {
+  return showModalBottomSheet<ImageSource>(
+    context: context,
+    builder: (ctx) => SafeArea(
+      child: Column(mainAxisSize: MainAxisSize.min, children: [
+        ListTile(
+          leading: const Icon(Icons.photo_library),
+          title: const Text('Galeria'),
+          onTap: () => Navigator.pop(ctx, ImageSource.gallery),
+        ),
+        ListTile(
+          leading: const Icon(Icons.photo_camera),
+          title: const Text('Aparat'),
+          onTap: () => Navigator.pop(ctx, ImageSource.camera),
+        ),
+      ]),
+    ),
+  );
 }

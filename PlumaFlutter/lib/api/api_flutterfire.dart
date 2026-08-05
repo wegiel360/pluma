@@ -198,26 +198,6 @@ class FlutterFireApi extends PlumaApi {
     }
   }
 
-  @override
-  Future<void> toggleReaction(String messageId, String username, String emoji) async {
-    final convSnap = await _db.collection('dms').get();
-    for (final conv in convSnap.docs) {
-      final ref = conv.reference.collection('messages').doc(messageId);
-      final doc = await ref.get();
-      if (doc.exists) {
-        final data = doc.data()!;
-        final reactions = Map<String, String>.from(data['reactions'] ?? {});
-        if (reactions[username] == emoji) {
-          reactions.remove(username);
-        } else {
-          reactions[username] = emoji;
-        }
-        await ref.update({'reactions': reactions});
-        return;
-      }
-    }
-  }
-
   // -----------------------------------------------------------------------
   // INVITATIONS
   // -----------------------------------------------------------------------

@@ -450,48 +450,52 @@ class _DashboardViewState extends State<DashboardView> {
                     child: ListView.separated(
                       scrollDirection: Axis.horizontal,
                       itemCount: w.hourly.length,
+                      addAutomaticKeepAlives: false,
+                      addRepaintBoundaries: true,
                       separatorBuilder: (_, _) => const SizedBox(width: 10),
                       itemBuilder: (context, i) {
                         final f = w.hourly[i];
-                        return Container(
-                          width: 72,
-                          padding: const EdgeInsets.all(10),
-                          decoration: BoxDecoration(
-                            color: Colors.white.withValues(alpha: 0.05),
-                            borderRadius: BorderRadius.circular(16),
-                            border: Border.all(color: Colors.white10),
-                          ),
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(f.time,
-                                  style: const TextStyle(
-                                      color: PlumaColors.onSurfaceVariant,
-                                      fontSize: 10,
-                                      fontFamily: 'monospace')),
-                              Icon(_iconFor(f.icon),
-                                  color: PlumaColors.primary, size: 20),
-                              Text('${f.temp}\u00B0',
-                                  style: const TextStyle(
-                                      color: PlumaColors.onSurface,
-                                      fontSize: 12,
-                                      fontWeight: FontWeight.bold,
-                                      fontFamily: 'monospace')),
-                              Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  const Icon(Icons.water_drop,
-                                      size: 10, color: PlumaColors.primary),
-                                  const SizedBox(width: 2),
-                                  Text('${f.rainChance}%',
-                                      style: TextStyle(
-                                          color: PlumaColors.primary
-                                              .withValues(alpha: 0.7),
-                                          fontSize: 9,
-                                          fontFamily: 'monospace')),
-                                ],
-                              ),
-                            ],
+                        return RepaintBoundary(
+                          child: Container(
+                            width: 72,
+                            padding: const EdgeInsets.all(10),
+                            decoration: BoxDecoration(
+                              color: Colors.white.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: Colors.white10),
+                            ),
+                            child: Column(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(f.time,
+                                    style: const TextStyle(
+                                        color: PlumaColors.onSurfaceVariant,
+                                        fontSize: 10,
+                                        fontFamily: 'monospace')),
+                                Icon(_iconFor(f.icon),
+                                    color: PlumaColors.primary, size: 20),
+                                Text('${f.temp}\u00B0',
+                                    style: const TextStyle(
+                                        color: PlumaColors.onSurface,
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                        fontFamily: 'monospace')),
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  children: [
+                                    const Icon(Icons.water_drop,
+                                        size: 10, color: PlumaColors.primary),
+                                    const SizedBox(width: 2),
+                                    Text('${f.rainChance}%',
+                                        style: TextStyle(
+                                            color: PlumaColors.primary
+                                                .withValues(alpha: 0.7),
+                                            fontSize: 9,
+                                            fontFamily: 'monospace')),
+                                  ],
+                                ),
+                              ],
+                            ),
                           ),
                         );
                       },

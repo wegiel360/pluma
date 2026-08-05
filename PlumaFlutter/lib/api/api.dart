@@ -31,7 +31,6 @@ abstract class PlumaApi {
   Future<void> editMessage(String messageId, String newText);
 
   Future<void> markConversationRead(String reader, String sender);
-  Future<void> toggleReaction(String messageId, String username, String emoji);
 
   Future<void> sendInvitation(String from, String to);
   Future<List<Invitation>> getIncomingInvitations(String username);

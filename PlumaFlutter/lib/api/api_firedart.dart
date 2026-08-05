@@ -204,25 +204,6 @@ class FiredartApi extends PlumaApi {
     }
   }
 
-  @override
-  Future<void> toggleReaction(String messageId, String username, String emoji) async {
-    final convPage = await _firestore.collection('dms').get();
-    for (final conv in convPage) {
-      final docRef = conv.reference.collection('messages').document(messageId);
-      if (await docRef.exists) {
-        final data = (await docRef.get()).map;
-        final reactions = Map<String, String>.from(data['reactions'] ?? {});
-        if (reactions[username] == emoji) {
-          reactions.remove(username);
-        } else {
-          reactions[username] = emoji;
-        }
-        await docRef.update({'reactions': reactions});
-        return;
-      }
-    }
-  }
-
   // -----------------------------------------------------------------------
   // INVITATIONS
   // -----------------------------------------------------------------------

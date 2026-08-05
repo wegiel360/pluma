@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=EmulateIE9">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Pluma - Wersja Ziemniak</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #061700;
+      color: #d2eabb;
+      font-family: "Times New Roman", Times, serif;
+      text-align: center;
+      padding: 20px;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      padding: 20px;
+      border: 1px solid #ffb870;
+      background: rgba(6, 23, 0, 0.9);
+    }
+    h1 {
+      color: #ffb870;
+      font-size: 24px;
+      margin-bottom: 10px;
+    }
+    .subtitle {
+      color: #a0b88d;
+      font-size: 12px;
+      font-family: "Courier New", monospace;
+      margin-bottom: 30px;
+    }
+    .potato-art {
+      font-size: 64px;
+      margin: 20px 0;
+      letter-spacing: -5px;
+    }
+    .warning-box {
+      border: 2px dashed #ffb870;
+      padding: 15px;
+      margin: 20px 0;
+      background: rgba(255, 184, 112, 0.05);
+    }
+    .warning-box h2 {
+      color: #ffb870;
+      font-size: 16px;
+      margin-bottom: 10px;
+    }
+    .warning-box p {
+      font-size: 13px;
+      line-height: 1.6;
+      margin-bottom: 8px;
+    }
+    .browser-list {
+      text-align: left;
+      margin: 15px 0;
+      padding-left: 20px;
+      font-size: 12px;
+      color: #a0b88d;
+    }
+    .browser-list li {
+      margin-bottom: 4px;
+    }
+    .blink {
+      animation: blink 1s step-end infinite;
+    }
+    @keyframes blink {
+      50% { opacity: 0; }
+    }
+    .slow-net {
+      margin-top: 20px;
+      padding: 10px;
+      background: rgba(255, 184, 112, 0.1);
+      font-size: 11px;
+      font-family: "Courier New", monospace;
+    }
+    .progress-bar {
+      width: 100%;
+      height: 20px;
+      background: #1c2f0f;
+      border: 1px solid #ffb870;
+      margin-top: 10px;
+      position: relative;
+      overflow: hidden;
+    }
+    .progress-fill {
+      height: 100%;
+      background: #ffb870;
+      width: 3%;
+      animation: progress 90s linear forwards;
+    }
+    @keyframes progress {
+      0% { width: 3%; }
+      100% { width: 4%; }
+    }
+    .footer {
+      margin-top: 30px;
+      font-size: 10px;
+      color: #534436;
+    }
+    a { color: #ffb870; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="potato-art">(@)</div>
+    <h1>PLUMA - WERSJA ZIEMNIAK</h1>
+    <p class="subtitle">liquid glass messenger (edycja tuberosum)</p>
+
+    <div class="warning-box">
+      <h2>!! UWAGA - WYKRYTO PRZESTARZALA PRZEGLADE !!</h2>
+      <p>Twoja przegladarka zostala rozpoznana jako <strong>Internet Explorer 9</strong> lub starsza.</p>
+      <p>Pluma wymaga nowoczesnej przegladarki, aby wyswietlic efekt "Plynny Zel".</p>
+      <p>Nie jestesmy w stanicie renderowac rozmycia szkla na Twoim komputerze. Probowalismy. System prawie zaszczyl.</p>
+
+      <ul class="browser-list">
+        <li>Google Chrome (polecany, nie jestemy powiazani)</li>
+        <li>Firefox (dobry dla prywatnosci)</li>
+        <li>Microsoft Edge (tak, ten nowy)</li>
+        <li>Safari (jeszcze masz Mac? szacun)</li>
+        <li>Opera (dla nostalgikow)</li>
+      </ul>
+    </div>
+
+    <div class="warning-box">
+      <h2>!! WYKRYTO WOLNE POLACZENIE !!</h2>
+      <p>Twoje polaczenie internetowe zostalo sklasyfikowane jako:</p>
+      <p><strong>"Ziemniak" - przepustowosc ok. 56 kbps"</strong></p>
+      <p>Zaladowanie pelnej wersji Pluma zajmie okolo:</p>
+      <p class="blink"><strong>lat 3 dni 7 godzin 22 minut</strong></p>
+
+      <div class="slow-net">
+        LADOWANIE POGODY DLA JASTRRZEBIA-ZDROJA...<br>
+        <div class="progress-bar"><div class="progress-fill"></div></div>
+        <span id="progress-text">3% (szacowany czas: 2d 14h)</span>
+      </div>
+    </div>
+
+    <div class="warning-box">
+      <h2>CO MOZESZ ZROBIC:</h2>
+      <p>1. Zaktualizuj przegladarka</p>
+      <p>2. Polacz sie do szybszego WiFi</p>
+      <p>3. Przyznaj sie do tego ze uzywasz IE9 w 2026 roku</p>
+      <p>4. Zastanow sie nad swoimi zyciowymi wyborami</p>
+    </div>
+
+    <div class="warning-box">
+      <h2>INFORMACJA TECHNICZNA:</h2>
+      <p>Pelnina wersja Pluma zawiera:</p>
+      <ul class="browser-list">
+        <li>Efekt Plynny Zel (wymaga WebGL 2.0)</li>
+        <li>Rozmycie szkla (wymaga BackdropFilter)</li>
+        <li>Animowane gradienty (wymaga GPU)</li>
+        <li>Pogoda na zywo (wymaga polaczenia < 5 sekund)</li>
+        <li>Wiadomosc (wymaga Twojej nieobecnie nie istniejacej)</li>
+      </ul>
+    </div>
+
+    <p class="footer">
+      Pluma (c) 2026 - Wersja Ziemniak 1.0<br>
+      "Dziala na wszystkim, co ma wtyczke pradowa"<br>
+      <a href="/pluma/">Sprobuj pelnej wersji (ryzykowne)</a>
+    </p>
+  </div>
+
+  <script>
+    setTimeout(function() {
+      var el = document.getElementById('progress-text');
+      if (el) el.innerHTML = '4% (szacowany czas: 2d 11h) - juz prawie!';
+    }, 30000);
+  </script>
+</body>
+</html>

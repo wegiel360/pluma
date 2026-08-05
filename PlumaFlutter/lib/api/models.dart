@@ -120,7 +120,6 @@ class Message {
   final String? imageUrl;
   final String? videoUrl;
   final String status;
-  final Map<String, String> reactions;
 
   const Message({
     required this.id,
@@ -136,20 +135,12 @@ class Message {
     this.imageUrl,
     this.videoUrl,
     this.status = 'sent',
-    this.reactions = const {},
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
     final imageUrl = json['imageUrl']?.toString();
     final videoUrl = json['videoUrl']?.toString();
     final text = json['text']?.toString() ?? '';
-    final rawReactions = json['reactions'];
-    final reactions = <String, String>{};
-    if (rawReactions is Map) {
-      rawReactions.forEach((k, v) {
-        reactions[k.toString()] = v.toString();
-      });
-    }
     return Message(
       id: json['id']?.toString() ?? '',
       sender: json['sender']?.toString() ?? '',
@@ -170,7 +161,6 @@ class Message {
       imageUrl: imageUrl,
       videoUrl: videoUrl,
       status: (json['status'] ?? 'sent').toString(),
-      reactions: reactions,
     );
   }
 
@@ -186,7 +176,6 @@ class Message {
         'imageUrl': imageUrl,
         'videoUrl': videoUrl,
         'status': status,
-        if (reactions.isNotEmpty) 'reactions': reactions,
       };
 }
 

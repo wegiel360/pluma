@@ -32,7 +32,6 @@ class _ProfileViewState extends State<ProfileView> {
   bool _saving = false;
   String? _error;
 
-
   @override
   void initState() {
     super.initState();
@@ -64,7 +63,9 @@ class _ProfileViewState extends State<ProfileView> {
     }
   }
 
-  Future<void> _pickBanner(ImageSource source) async {
+  Future<void> _pickBanner() async {
+    final source = await showImageSourcePicker(context);
+    if (source == null) return;
     final picker = ImagePicker();
     final file = await picker.pickImage(source: source, maxWidth: 1600);
     if (file == null) return;
@@ -87,7 +88,9 @@ class _ProfileViewState extends State<ProfileView> {
     }
   }
 
-  Future<void> _pickPfp(ImageSource source) async {
+  Future<void> _pickPfp() async {
+    final source = await showImageSourcePicker(context);
+    if (source == null) return;
     final picker = ImagePicker();
     final file = await picker.pickImage(source: source, maxWidth: 600);
     if (file == null) return;
@@ -120,45 +123,16 @@ class _ProfileViewState extends State<ProfileView> {
     } catch (_) {}
   }
 
-  void _showSourcePicker(String type) {
-    showModalBottomSheet<ImageSource>(
-      context: context,
-      builder: (ctx) => SafeArea(
-        child: Column(mainAxisSize: MainAxisSize.min, children: [
-          ListTile(
-            leading: const Icon(Icons.photo_library),
-            title: const Text('Galeria'),
-            onTap: () => Navigator.pop(ctx, ImageSource.gallery),
-          ),
-          ListTile(
-            leading: const Icon(Icons.photo_camera),
-            title: const Text('Aparat'),
-            onTap: () => Navigator.pop(ctx, ImageSource.camera),
-          ),
-        ]),
-      ),
-    ).then((source) {
-      if (source == null) return;
-      if (type == 'banner') {
-        _pickBanner(source);
-      } else {
-        _pickPfp(source);
-      }
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     final color = Theme.of(context).colorScheme.primary;
-    final currentColor =
-        PlumaTheme.parseHex(widget.currentUser.color);
+    final currentColor = PlumaTheme.parseHex(widget.currentUser.color);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // Banner — 21:8 aspect ratio
           ClipRRect(
             borderRadius: BorderRadius.circular(28),
             child: Stack(
@@ -170,7 +144,6 @@ class _ProfileViewState extends State<ProfileView> {
                     child: _bannerImage(double.infinity),
                   ),
                 ),
-                // Gradient overlay
                 Positioned.fill(
                   child: Container(
                     decoration: BoxDecoration(
@@ -192,22 +165,18 @@ class _ProfileViewState extends State<ProfileView> {
                     label: _saving ? 'zapisywanie...' : 'zmien tlo z pc',
                     icon: Icons.upload_file,
                     loading: _saving,
-                    onPressed: _saving
-                        ? null
-                        : () => _showSourcePicker('banner'),
+                    onPressed: _saving ? null : _pickBanner,
                   ),
                 ),
               ],
             ),
           ),
-
           const SizedBox(height: 8),
-          // Identity
           Row(
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               GestureDetector(
-                onTap: () => _showSourcePicker('pfp'),
+                onTap: _pickPfp,
                 child: NeonAvatar(image: _pfp, size: 96),
               ),
               const SizedBox(width: 16),
@@ -247,7 +216,6 @@ class _ProfileViewState extends State<ProfileView> {
             ],
           ),
           const SizedBox(height: 8),
-
           if (_error != null)
             Padding(
               padding: const EdgeInsets.only(bottom: 8),
@@ -257,8 +225,6 @@ class _ProfileViewState extends State<ProfileView> {
                     color: Color(0xFFFF6B6B), fontSize: 12),
               ),
             ),
-
-          // Bio card
           GlassCard(
             padding: const EdgeInsets.all(20),
             radius: 20,
@@ -290,16 +256,14 @@ class _ProfileViewState extends State<ProfileView> {
                         color: PlumaColors.onSurface, fontSize: 14),
                     decoration: InputDecoration(
                       filled: true,
-                      fillColor:
-                          Colors.black.withValues(alpha: 0.4),
+                      fillColor: Colors.black.withValues(alpha: 0.4),
                       hintText: 'Napisz cos o sobie...',
                       hintStyle: const TextStyle(
                           color: PlumaColors.onSurfaceVariant),
                       border: OutlineInputBorder(
                         borderRadius: BorderRadius.circular(12),
                         borderSide: BorderSide(
-                            color: Colors.white
-                                .withValues(alpha: 0.1)),
+                            color: Colors.white.withValues(alpha: 0.1)),
                       ),
                     ),
                   ),
@@ -312,8 +276,7 @@ class _ProfileViewState extends State<ProfileView> {
                             setState(() => _editingBio = false),
                         child: const Text('anuluj',
                             style: TextStyle(
-                                color:
-                                    PlumaColors.onSurfaceVariant)),
+                                color: PlumaColors.onSurfaceVariant)),
                       ),
                       const SizedBox(width: 8),
                       NeonButton(
@@ -336,9 +299,7 @@ class _ProfileViewState extends State<ProfileView> {
               ],
             ),
           ),
-
           const SizedBox(height: 16),
-          // Customization
           GlassCard(
             padding: const EdgeInsets.all(24),
             radius: 24,
@@ -484,10 +445,23 @@ class _ProfileViewState extends State<ProfileView> {
               style: TextStyle(color: PlumaColors.onSurface)),
           content: SizedBox(
             width: 260,
-            height: 200,
-            child: ColorPickerCanvas(
-              initialColor: initial,
-              onPicked: (c) => Navigator.pop(ctx, c),
+            height: 40,
+            child: GridView.count(
+              crossAxisCount: 6,
+              children: [
+                _pickerColor(Colors.red, ctx),
+                _pickerColor(Colors.orange, ctx),
+                _pickerColor(Colors.yellow, ctx),
+                _pickerColor(Colors.green, ctx),
+                _pickerColor(Colors.cyan, ctx),
+                _pickerColor(Colors.blue, ctx),
+                _pickerColor(Colors.purple, ctx),
+                _pickerColor(Colors.pink, ctx),
+                _pickerColor(Colors.teal, ctx),
+                _pickerColor(Colors.lime, ctx),
+                _pickerColor(Colors.indigo, ctx),
+                _pickerColor(Colors.amber, ctx),
+              ],
             ),
           ),
         );
@@ -497,80 +471,17 @@ class _ProfileViewState extends State<ProfileView> {
       await _changeColor(PlumaTheme.colorToHex(picked));
     }
   }
-}
 
-class ColorPickerCanvas extends StatefulWidget {
-  final Color initialColor;
-  final ValueChanged<Color> onPicked;
-
-  const ColorPickerCanvas({
-    super.key,
-    required this.initialColor,
-    required this.onPicked,
-  });
-
-  @override
-  State<ColorPickerCanvas> createState() => _ColorPickerCanvasState();
-}
-
-class _ColorPickerCanvasState extends State<ColorPickerCanvas> {
-  Color _color = Colors.white;
-
-  @override
-  void initState() {
-    super.initState();
-    _color = widget.initialColor;
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Expanded(
-          child: GestureDetector(
-            onPanUpdate: (d) => _updateFromPosition(d.localPosition),
-            onTapDown: (d) => _updateFromPosition(d.localPosition),
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [
-                    Colors.red,
-                    Colors.yellow,
-                    Colors.green,
-                    Colors.cyan,
-                    Colors.blue,
-                    Colors.pinkAccent,
-                    Colors.red,
-                  ],
-                  begin: Alignment.topCenter,
-                  end: Alignment.bottomCenter,
-                ),
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-          ),
+  Widget _pickerColor(Color c, BuildContext ctx) {
+    return GestureDetector(
+      onTap: () => Navigator.pop(ctx, c),
+      child: Container(
+        margin: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: c,
+          shape: BoxShape.circle,
         ),
-        const SizedBox(height: 12),
-        Container(
-          width: 40,
-          height: 40,
-          decoration:
-              BoxDecoration(color: _color, shape: BoxShape.circle),
-        ),
-        const SizedBox(height: 12),
-        NeonButton(
-          label: 'wybierz',
-          onPressed: () => widget.onPicked(_color),
-        ),
-      ],
+      ),
     );
-  }
-
-  void _updateFromPosition(Offset pos) {
-    final width = context.size?.width ?? 1;
-    final t = (pos.dx / width).clamp(0.0, 1.0);
-    final hue = t * 360.0;
-    setState(
-        () => _color = HSVColor.fromAHSV(1, hue, 1, 1).toColor());
   }
 }
