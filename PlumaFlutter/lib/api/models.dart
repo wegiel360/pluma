@@ -134,6 +134,7 @@ class Message {
   final String? imageUrl;
   final String? videoUrl;
   final String status;
+  final bool isAI;
 
   const Message({
     required this.id,
@@ -149,6 +150,7 @@ class Message {
     this.imageUrl,
     this.videoUrl,
     this.status = 'sent',
+    this.isAI = false,
   });
 
   factory Message.fromJson(Map<String, dynamic> json) {
@@ -175,6 +177,7 @@ class Message {
       imageUrl: imageUrl,
       videoUrl: videoUrl,
       status: (json['status'] ?? 'sent').toString(),
+      isAI: json['isAI'] == true,
     );
   }
 
@@ -190,6 +193,7 @@ class Message {
         'imageUrl': imageUrl,
         'videoUrl': videoUrl,
         'status': status,
+        'isAI': isAI,
       };
 }
 

@@ -5,6 +5,7 @@ import 'firebase_options.dart';
 
 import 'api/api.dart';
 import 'api/api_factory.dart';
+import 'api/mietek.dart';
 import 'api/models.dart';
 import 'api/saved_accounts.dart';
 import 'api/weather_api.dart';
@@ -39,6 +40,14 @@ class PlumaApp extends StatelessWidget {
 class AppServices {
   final PlumaApi api = createApi();
   final WeatherApi weatherApi = WeatherApi();
+  final MietekClient? mietek;
+
+  AppServices()
+      : mietek = (() {
+          const key = String.fromEnvironment('OPENROUTER_API_KEY_MIETEK');
+          if (key.isNotEmpty) return MietekClient(apiKey: key);
+          return null;
+        })();
 
   static const Color defaultAccent = PlumaColors.primary;
 }

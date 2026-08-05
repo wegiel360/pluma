@@ -130,6 +130,7 @@ class FiredartApi extends PlumaApi {
     String text = '',
     String? imageUrl,
     String? videoUrl,
+    bool isAI = false,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     final h = DateTime.now().hour.toString().padLeft(2, '0');
@@ -143,12 +144,14 @@ class FiredartApi extends PlumaApi {
       createdAt: now,
       imageUrl: imageUrl,
       videoUrl: videoUrl,
+      isAI: isAI,
     );
     await _firestore
         .collection('dms')
         .document(_conversationId(sender, recipient))
         .collection('messages')
-        .add(msg.toJson());
+        .document(msg.id)
+        .set(msg.toJson());
   }
 
   @override

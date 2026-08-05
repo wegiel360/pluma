@@ -124,6 +124,7 @@ class FlutterFireApi extends PlumaApi {
     String text = '',
     String? imageUrl,
     String? videoUrl,
+    bool isAI = false,
   }) async {
     final now = DateTime.now().millisecondsSinceEpoch;
     final h = DateTime.now().hour.toString().padLeft(2, '0');
@@ -137,12 +138,14 @@ class FlutterFireApi extends PlumaApi {
       createdAt: now,
       imageUrl: imageUrl,
       videoUrl: videoUrl,
+      isAI: isAI,
     );
     await _db
         .collection('dms')
         .doc(_conversationId(sender, recipient))
         .collection('messages')
-        .add(msg.toJson());
+        .doc(msg.id)
+        .set(msg.toJson());
   }
 
   @override

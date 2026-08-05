@@ -27,6 +27,7 @@ abstract class PlumaApi {
     String text = '',
     String? imageUrl,
     String? videoUrl,
+    bool isAI = false,
   });
   Future<List<Message>> getConversation(String user1, String user2);
   Future<void> deleteMessage(String messageId);

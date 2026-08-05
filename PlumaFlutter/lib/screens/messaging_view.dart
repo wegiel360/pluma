@@ -142,6 +142,73 @@ class _MessagingViewState extends State<MessagingView> {
     } finally {
       if (mounted) setState(() => _sending = false);
     }
+
+    // Trigger @mietek if mentioned
+    if (text.contains('@mietek') && widget.services.mietek != null) {
+      _triggerMietek(optimistic);
+    }
+  }
+
+  Future<void> _triggerMietek(Message triggeringMessage) async {
+    final sel = _selected!;
+    final mietek = widget.services.mietek!;
+    final weather = widget.services.weatherApi;
+
+    String? weatherContext;
+    try {
+      final w = await weather.getWeather(
+        lat: 50.2649,
+        lon: 19.0238,
+        city: 'Katowice, Śląsk, Polska',
+      );
+      weatherContext = '${w.condition}, ${w.temp}°C, ${w.high}°/${w.low}°C';
+    } catch (_) {}
+
+    final history = _messages
+        .where((m) => m.sender == widget.currentUser.username || m.sender == 'mietek')
+        .map((m) => {
+              'sender': m.sender,
+              'text': m.text,
+              'createdAt': m.createdAt,
+            })
+        .toList();
+
+    String? reply;
+    try {
+      reply = await mietek.getReply(
+        triggerMessage: triggeringMessage.text,
+        conversationHistory: history,
+        weatherContext: weatherContext,
+      );
+    } catch (e) {
+      reply = 'Kurcze, coś mi się chyba odpaliło źródło mocy... spróbuj później!';
+    }
+
+    reply ??= 'Kurcze blade, nie dostaję odpowiedzi... może spróbujesz ponownie?';
+
+    final now = DateTime.now();
+    final mietekMsg = Message(
+      id: 'mietek-${now.millisecondsSinceEpoch}',
+      sender: 'mietek',
+      recipient: widget.currentUser.username,
+      text: reply,
+      timestamp: '${_pad(now.hour)}:${_pad(now.minute)}',
+      createdAt: now.millisecondsSinceEpoch,
+      isAI: true,
+    );
+
+    await widget.services.api.sendMessage(
+      sender: 'mietek',
+      recipient: sel.username,
+      text: reply,
+      isAI: true,
+    );
+
+    if (mounted) {
+      setState(() {
+        _messages = [..._messages, mietekMsg];
+      });
+    }
   }
 
   String _pad(int v) => v.toString().padLeft(2, '0');
@@ -793,6 +860,20 @@ class _MessagingViewState extends State<MessagingView> {
 
   Widget _messageBubble(Message m, bool isMe, UserProfile peer) {
     final color = Theme.of(context).colorScheme.primary;
+    final isMietek = m.sender == 'mietek';
+    final mietekAvatar = m.isAI
+        ? Container(
+            width: 24,
+            height: 24,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              color: const Color(0xFF2A2A3A),
+              border: Border.all(color: color.withValues(alpha: 0.4), width: 1.5),
+            ),
+            child: const Icon(Icons.smart_toy, size: 12, color: Color(0xFFffd86b)),
+          )
+        : null;
+
     return RepaintBoundary(
       child: Align(
         alignment: isMe ? Alignment.centerRight : Alignment.centerLeft,
@@ -804,18 +885,20 @@ class _MessagingViewState extends State<MessagingView> {
             crossAxisAlignment: CrossAxisAlignment.end,
             children: [
               if (!isMe) ...[
-                NeonAvatar(image: peer.pfp, size: 28),
+                if (isMietek) ...[mietekAvatar!, const SizedBox(width: 8)] else NeonAvatar(image: peer.pfp, size: 28),
                 const SizedBox(width: 8),
               ],
               Flexible(
                 child: GestureDetector(
-                  onLongPress: () => _showMessageMenu(m, isMe),
+                  onLongPress: isMietek ? null : () => _showMessageMenu(m, isMe),
                   child: Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: EdgeInsets.fromLTRB(14, 10, 14, isMietek ? 6 : 12),
                     decoration: BoxDecoration(
-                      color: isMe
-                          ? color.withValues(alpha: 0.2)
-                          : Colors.white.withValues(alpha: 0.05),
+                      color: isMietek
+                          ? const Color(0xFF1A1A2E).withValues(alpha: 0.6)
+                          : isMe
+                              ? color.withValues(alpha: 0.2)
+                              : Colors.white.withValues(alpha: 0.05),
                       borderRadius: BorderRadius.only(
                         topLeft: const Radius.circular(18),
                         topRight: const Radius.circular(18),
@@ -823,14 +906,35 @@ class _MessagingViewState extends State<MessagingView> {
                         bottomRight: Radius.circular(isMe ? 4 : 18),
                       ),
                       border: Border.all(
-                        color: isMe
-                            ? color.withValues(alpha: 0.2)
-                            : Colors.white.withValues(alpha: 0.1),
+                        color: isMietek
+                            ? color.withValues(alpha: 0.3)
+                            : isMe
+                                ? color.withValues(alpha: 0.2)
+                                : Colors.white.withValues(alpha: 0.1),
                       ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        if (isMietek)
+                          Container(
+                            margin: const EdgeInsets.only(bottom: 6),
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: color.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Text(
+                              'AI',
+                              style: TextStyle(
+                                color: Color(0xFFffd86b),
+                                fontSize: 9,
+                                fontFamily: 'monospace',
+                                fontWeight: FontWeight.w700,
+                                letterSpacing: 1,
+                              ),
+                            ),
+                          ),
                         if (m.isImage && m.imageUrl != null)
                           ClipRRect(
                             borderRadius: BorderRadius.circular(8),
@@ -872,7 +976,9 @@ class _MessagingViewState extends State<MessagingView> {
                               style: TextStyle(
                                 color: isMe
                                     ? color.withValues(alpha: 0.8)
-                                    : PlumaColors.onSurfaceVariant.withValues(alpha: 0.6),
+                                    : isMietek
+                                        ? const Color(0xFFffd86b).withValues(alpha: 0.7)
+                                        : PlumaColors.onSurfaceVariant.withValues(alpha: 0.6),
                                 fontSize: 9,
                                 fontFamily: 'monospace',
                               ),
@@ -997,6 +1103,7 @@ class _MessagingViewState extends State<MessagingView> {
   }
 
   Widget _buildStatusIcon(Message m, bool isMe) {
+    if (m.sender == 'mietek') return const SizedBox(width: 14);
     if (!isMe) return const SizedBox(width: 14);
     final color = Theme.of(context).colorScheme.primary;
     switch (m.status) {
