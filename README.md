@@ -1,6 +1,5 @@
-<div align="center">
 <b>Pluma<b>
-  
+<div align="center">
 <img src="PlumaFlutter/assets/logo-pluma.png" alt="Pluma Logo" width="160" />
 <br/><br/>
 Flutter · GH Pages · Firebase
