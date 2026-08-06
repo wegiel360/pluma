@@ -75,6 +75,12 @@ jobs:
           Type=Application
           Categories=Network;Chat;
           EOF
+          cat > AppDir/AppRun << 'EOF'
+          #!/bin/sh
+          HERE="$(dirname "$(readlink -f "${0}")")"
+          exec "${HERE}/usr/bin/pluma" "$@"
+          EOF
+          chmod +x AppDir/AppRun
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
           cp assets/logo-kogut-1000x1000.png AppDir/usr/share/icons/hicolor/256x256/apps/pluma.png
           cp assets/logo-kogut-1000x1000.png AppDir/pluma.png
@@ -104,8 +110,10 @@ jobs:
       - name: Get dependencies
         run: flutter pub get
       - name: Build Windows (EXE)
+        env:
+          CMAKE_POLICY_VERSION_MINIMUM: "3.5"
         run: |
-          flutter build windows --release -- -DCMAKE_POLICY_VERSION_MINIMUM=3.5
+          flutter build windows --release
       - name: Install NSIS
         run: |
           choco install nsis -y --no-progress
