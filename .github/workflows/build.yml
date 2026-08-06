@@ -23,16 +23,6 @@ jobs:
         with:
           flutter-version: 3.44.8
           channel: stable
-      - name: Configure Firebase
-        run: |
-          mkdir -p lib
-          python3 -c "
-          import os
-          with open('lib/firebase_options.dart', 'w') as f:
-              f.write(os.environ['FIREBASE_OPTIONS_DART'])
-          "
-        env:
-          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
       - name: Get dependencies
         run: flutter pub get
       - name: Build APK
@@ -63,16 +53,6 @@ jobs:
         run: |
           flutter config --enable-linux-desktop
           flutter create --platforms=linux .
-      - name: Configure Firebase
-        run: |
-          mkdir -p lib
-          python3 -c "
-          import os
-          with open('lib/firebase_options.dart', 'w') as f:
-              f.write(os.environ['FIREBASE_OPTIONS_DART'])
-          "
-        env:
-          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
       - name: Get dependencies
         run: flutter pub get
       - name: Build Linux
@@ -96,8 +76,8 @@ jobs:
           Categories=Network;Chat;
           EOF
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
-          cp ../assets/logo-kogut-1000x1000.png AppDir/usr/share/icons/hicolor/256x256/apps/pluma.png
-          cp ../assets/logo-kogut-1000x1000.png AppDir/pluma.png
+          cp assets/logo-kogut-1000x1000.png AppDir/usr/share/icons/hicolor/256x256/apps/pluma.png
+          cp assets/logo-kogut-1000x1000.png AppDir/pluma.png
       - name: Build AppImage
         run: |
           /tmp/appimagetool AppDir Pluma-Linux-x86_64.AppImage
@@ -108,7 +88,7 @@ jobs:
           path: Pluma-Linux-x86_64.AppImage
 
   build-windows-exe:
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     defaults:
       run:
         working-directory: PlumaFlutter
@@ -121,32 +101,21 @@ jobs:
           channel: stable
       - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
-      - name: Configure Firebase
-        run: |
-          mkdir -p lib
-          python3 -c "
-          import os
-          with open('lib/firebase_options.dart', 'w') as f:
-              f.write(os.environ['FIREBASE_OPTIONS_DART'])
-          "
-        env:
-          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
       - name: Get dependencies
         run: flutter pub get
       - name: Build Windows (EXE)
         run: |
           flutter build windows --release
-      - name: Install NSIS + Wine
+      - name: Install NSIS
         run: |
-          sudo apt-get update
-          sudo apt-get install -y nsis wine
+          choco install nsis -y --no-progress
       - name: Create NSIS installer
         shell: bash
         run: |
           INSTALLER_DIR="${RUNNER_TEMP}/installer"
           mkdir -p "${INSTALLER_DIR}"
           cp -r build/windows/runner/Release/* "${INSTALLER_DIR}/"
-          cat > /tmp/installer.nsi << 'NSISEOF'
+          cat > "${RUNNER_TEMP}/installer.nsi" << 'NSISEOF'
           !define APP_NAME "Pluma"
           !define COMPANY_NAME "PlumaMessenger"
           RequestExecutionLevel admin
@@ -172,7 +141,7 @@ jobs:
               DeleteRegKey HKLM "SOFTWARE\\Pluma"
           SectionUninstallEnd
           NSISEOF
-          wine makensis /tmp/installer.nsi
+          makensis "${RUNNER_TEMP}/installer.nsi"
           cp Pluma-Setup.exe "${RUNNER_TEMP}/Pluma-Setup.exe"
       - name: Upload Windows EXE artifact
         uses: actions/upload-artifact@v4
