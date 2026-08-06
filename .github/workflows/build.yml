@@ -18,10 +18,10 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-      - name: Setup Flutter
+- name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.48.0"
+          flutter-version: 3.44.8
           channel: stable
       - name: Configure Firebase
         run: |
@@ -53,7 +53,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.48.0"
+          flutter-version: 3.44.8
           channel: stable
       - name: Install Linux dependencies
         run: |
@@ -112,10 +112,10 @@ jobs:
         working-directory: PlumaFlutter
     steps:
       - uses: actions/checkout@v4
-      - name: Setup Flutter
+- name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.48.0"
+          flutter-version: 3.44.8
           channel: stable
       - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
@@ -216,5 +216,7 @@ jobs:
           publish_branch: gh-pages
           keep_files: false
           cname: false
+
+
 
 
