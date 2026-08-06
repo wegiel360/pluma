@@ -21,7 +21,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.1"
+          flutter-version: "3.35.0"
           channel: stable
       - name: Configure Firebase
         run: |
@@ -53,7 +53,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.1"
+          flutter-version: "3.35.0"
           channel: stable
       - name: Install Linux dependencies
         run: |
@@ -115,7 +115,7 @@ jobs:
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: "3.29.1"
+          flutter-version: "3.35.0"
           channel: stable
       - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
@@ -216,3 +216,4 @@ jobs:
           publish_branch: gh-pages
           keep_files: false
           cname: false
+
