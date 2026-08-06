@@ -122,7 +122,7 @@ jobs:
         run: |
           INSTALLER_DIR="${RUNNER_TEMP}/installer"
           mkdir -p "${INSTALLER_DIR}"
-          cp -r build/windows/runner/Release/* "${INSTALLER_DIR}/"
+          cp -r build/windows/x64/runner/Release/* "${INSTALLER_DIR}/"
           cat > "${RUNNER_TEMP}/installer.nsi" << 'NSISEOF'
           !define APP_NAME "Pluma"
           !define COMPANY_NAME "PlumaMessenger"
