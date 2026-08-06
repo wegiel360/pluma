@@ -18,7 +18,7 @@ jobs:
         with:
           distribution: temurin
           java-version: "17"
-- name: Setup Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.44.8
@@ -112,7 +112,7 @@ jobs:
         working-directory: PlumaFlutter
     steps:
       - uses: actions/checkout@v4
-- name: Setup Flutter
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           flutter-version: 3.44.8
