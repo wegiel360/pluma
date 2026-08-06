@@ -26,7 +26,7 @@ class FlutterFireApi extends PlumaApi {
       name: username,
       bio: 'uzytkownik pluma',
       color: '#ffb870',
-      pfp: 'assets/default-pfp.png',
+      pfp: 'assets/defaultpfp2.0.jpg',
       banner: 'assets/bliss-1024p.jpg',
       createdAt: now,
     );
@@ -59,7 +59,7 @@ class FlutterFireApi extends PlumaApi {
       name: username,
       bio: 'uzytkownik pluma',
       color: '#ffb870',
-      pfp: 'assets/default-pfp.png',
+      pfp: 'assets/defaultpfp2.0.jpg',
       banner: 'assets/bliss-1024p.jpg',
       createdAt: now,
     );

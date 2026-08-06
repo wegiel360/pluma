@@ -1,4 +1,4 @@
-name: Build APK + AppImage + Windows EXE
+name: Build APK + AppImage + Windows EXE (NSIS)
 
 on:
   push:
@@ -13,19 +13,16 @@ jobs:
         working-directory: PlumaFlutter
     steps:
       - uses: actions/checkout@v4
-      
       - name: Setup Java
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
-          java-version: '17'
-        
+          distribution: temurin
+          java-version: "17"
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.1'
-          channel: 'stable'
-        
+          flutter-version: "3.29.1"
+          channel: stable
       - name: Configure Firebase
         run: |
           mkdir -p lib
@@ -36,13 +33,10 @@ jobs:
           "
         env:
           FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
-        
       - name: Get dependencies
         run: flutter pub get
-        
       - name: Build APK
         run: flutter build apk --release
-
       - name: Upload APK artifact
         uses: actions/upload-artifact@v4
         with:
@@ -56,21 +50,17 @@ jobs:
         working-directory: PlumaFlutter
     steps:
       - uses: actions/checkout@v4
-      
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.1'
-          channel: 'stable'
-      
+          flutter-version: "3.29.1"
+          channel: stable
       - name: Install Linux dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
-      
       - name: Enable Linux desktop
         run: flutter config --enable-linux-desktop
-
       - name: Configure Firebase
         run: |
           mkdir -p lib
@@ -81,18 +71,14 @@ jobs:
           "
         env:
           FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
-
       - name: Get dependencies
         run: flutter pub get
-
       - name: Build Linux
         run: flutter build linux --release
-      
       - name: Download appimagetool
         run: |
           wget -q https://github.com/AppImage/AppImageKit/releases/download/continuous/appimagetool-x86_64.AppImage -O /tmp/appimagetool
           chmod +x /tmp/appimagetool
-      
       - name: Prepare AppDir
         run: |
           mkdir -p AppDir/usr/bin
@@ -101,7 +87,7 @@ jobs:
           cat > AppDir/usr/share/applications/pluma.desktop << 'EOF'
           [Desktop Entry]
           Name=Pluma
-          Comment=Komunikator z wyglądem Płynny Żel
+          Comment=Komunikator z wygladem Plynny Zel
           Exec=pluma
           Icon=pluma
           Type=Application
@@ -110,11 +96,9 @@ jobs:
           mkdir -p AppDir/usr/share/icons/hicolor/256x256/apps
           cp ../assets/logo-kogut-1000x1000.png AppDir/usr/share/icons/hicolor/256x256/apps/pluma.png
           cp ../assets/logo-kogut-1000x1000.png AppDir/pluma.png
-      
       - name: Build AppImage
         run: |
           /tmp/appimagetool AppDir Pluma-Linux-x86_64.AppImage
-      
       - name: Upload AppImage artifact
         uses: actions/upload-artifact@v4
         with:
@@ -128,16 +112,13 @@ jobs:
         working-directory: PlumaFlutter
     steps:
       - uses: actions/checkout@v4
-      
       - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
-          flutter-version: '3.29.1'
-          channel: 'stable'
-      
+          flutter-version: "3.29.1"
+          channel: stable
       - name: Enable Windows desktop
         run: flutter config --enable-windows-desktop
-
       - name: Configure Firebase
         run: |
           mkdir -p lib
@@ -148,68 +129,54 @@ jobs:
           "
         env:
           FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
-
       - name: Get dependencies
         run: flutter pub get
-
       - name: Build Windows (EXE)
         run: |
           flutter build windows --release --target-platform=windows-x64
-      
-      - name: Zip Windows build
+      - name: Install NSIS + Wine
         run: |
-          cd build/windows/runner/Release
-          zip -r Pluma-Windows-x64.zip .
-
+          sudo apt-get update
+          sudo apt-get install -y nsis wine
+      - name: Create NSIS installer
+        shell: bash
+        run: |
+          INSTALLER_DIR="${RUNNER_TEMP}/installer"
+          mkdir -p "${INSTALLER_DIR}"
+          cp -r build/windows/runner/Release/* "${INSTALLER_DIR}/"
+          cat > /tmp/installer.nsi << 'NSISEOF'
+          !define APP_NAME "Pluma"
+          !define COMPANY_NAME "PlumaMessenger"
+          RequestExecutionLevel admin
+          Name "${APP_NAME}"
+          OutFile "Pluma-Setup.exe"
+          InstallDir "$PROGRAMFILES\\Pluma"
+          InstallDirRegKey HKLM "SOFTWARE\\Pluma" "Install_Dir"
+          Page directory
+          Page instfiles
+          Section "MainSection" SEC01
+              SetOutDir "$INSTDIR"
+              File /r "${INSTALLER_DIR}\\*.*"
+              WriteRegStr HKLM "SOFTWARE\\Pluma" "Install_Dir" "$INSTDIR"
+              CreateShortCut "$DESKTOP\\Pluma.lnk" "$INSTDIR\\Pluma.exe"
+              CreateShortCut "$SMSTARTUP\\Pluma.lnk" "$INSTDIR\\Pluma.exe"
+          SectionEnd
+          SectionUninstall
+              Delete "$INSTDIR\\Pluma.exe"
+              Delete "$INSTDIR\\Pluma.lnk"
+              Delete "$DESKTOP\\Pluma.lnk"
+              Delete "$SMSTARTUP\\Pluma.lnk"
+              RMDir "$INSTDIR"
+              DeleteRegKey HKLM "SOFTWARE\\Pluma"
+          SectionUninstallEnd
+          NSISEOF
+          wine makensis /tmp/installer.nsi
+          cp Pluma-Setup.exe "${RUNNER_TEMP}/Pluma-Setup.exe"
       - name: Upload Windows EXE artifact
         uses: actions/upload-artifact@v4
         with:
           name: pluma-windows
-          path: PlumaFlutter/build/windows/runner/Release/Pluma-Windows-x64.zip
-      
-      - name: Copy EXE to root for release
-        run: |
-          cp build/windows/runner/Release/Pluma-Windows-x64.zip /tmp/Pluma-Windows-x64.zip
-
-  deploy-web:
-    runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: PlumaFlutter
-    steps:
-      - uses: actions/checkout@v4
-      
-      - name: Setup Flutter
-        uses: subosito/flutter-action@v2
-        with:
-          flutter-version: '3.29.1'
-          channel: 'stable'
-        
-      - name: Configure Firebase
-        run: |
-          mkdir -p lib
-          python3 -c "
-          import os
-          with open('lib/firebase_options.dart', 'w') as f:
-              f.write(os.environ['FIREBASE_OPTIONS_DART'])
-          "
-        env:
-          FIREBASE_OPTIONS_DART: ${{ secrets.FIREBASE_OPTIONS_DART }}
-        
-      - name: Get dependencies
-        run: flutter pub get
-        
-      - name: Build Web
-        run: flutter build web --release --base-href "/pluma/"
-        
-      - name: Deploy to GitHub Pages
-        uses: peaceiris/actions-gh-pages@v4
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: PlumaFlutter/build/web
-          publish_branch: gh-pages
-          keep_files: false
-          cname: false
+          path: ${{ runner.temp }}/Pluma-Setup.exe
 
   build-and-upload-release:
     runs-on: ubuntu-24.04
@@ -219,7 +186,6 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           path: artifacts
-      
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
         with:
@@ -230,3 +196,23 @@ jobs:
             artifacts/pluma-android/*
             artifacts/pluma-linux/*
             artifacts/pluma-windows/*
+
+  deploy-landing:
+    runs-on: ubuntu-24.04
+    needs: [build-and-upload-release]
+    steps:
+      - uses: actions/checkout@v4
+      - name: Prepare landing directory
+        run: |
+          mkdir -p landing/public/assets
+          cp landing/index.html landing/public/index.html
+          cp PlumaFlutter/assets/bliss-1024p.jpg landing/public/assets/bliss-1024p.jpg
+          cp PlumaFlutter/assets/logo-kogut-250x250.png landing/public/assets/logo-kogut-250x250.png
+      - name: Deploy to GitHub Pages
+        uses: peaceiris/actions-gh-pages@v4
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_dir: landing/public
+          publish_branch: gh-pages
+          keep_files: false
+          cname: false

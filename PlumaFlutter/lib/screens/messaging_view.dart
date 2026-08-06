@@ -151,12 +151,12 @@ class _MessagingViewState extends State<MessagingView> {
 
   Future<void> _triggerMietek(Message triggeringMessage) async {
     final sel = _selected!;
-    final mietek = widget.services.mietek!;
-    final weather = widget.services.weatherApi;
+    final mietek = widget.services.mietek;
+    if (mietek == null) return;
 
     String? weatherContext;
     try {
-      final w = await weather.getWeather(
+      final w = await widget.services.weatherApi.getWeather(
         lat: 50.2649,
         lon: 19.0238,
         city: 'Katowice, Śląsk, Polska',
@@ -164,51 +164,16 @@ class _MessagingViewState extends State<MessagingView> {
       weatherContext = '${w.condition}, ${w.temp}°C, ${w.high}°/${w.low}°C';
     } catch (_) {}
 
-    final history = _messages
-        .where((m) => m.sender == widget.currentUser.username || m.sender == 'mietek')
-        .map((m) => {
-              'sender': m.sender,
-              'text': m.text,
-              'createdAt': m.createdAt,
-            })
-        .toList();
+    final sorted = [widget.currentUser.username, sel.username]..sort();
+    final dmId = '${sorted[0]}_${sorted[1]}';
 
-    String? reply;
-    try {
-      reply = await mietek.getReply(
-        triggerMessage: triggeringMessage.text,
-        conversationHistory: history,
-        weatherContext: weatherContext,
-      );
-    } catch (e) {
-      reply = 'Kurcze, coś mi się chyba odpaliło źródło mocy... spróbuj później!';
-    }
-
-    reply ??= 'Kurcze blade, nie dostaję odpowiedzi... może spróbujesz ponownie?';
-
-    final now = DateTime.now();
-    final mietekMsg = Message(
-      id: 'mietek-${now.millisecondsSinceEpoch}',
-      sender: 'mietek',
-      recipient: widget.currentUser.username,
-      text: reply,
-      timestamp: '${_pad(now.hour)}:${_pad(now.minute)}',
-      createdAt: now.millisecondsSinceEpoch,
-      isAI: true,
+    await mietek.getReply(
+      triggerMessage: triggeringMessage.text,
+      dmId: dmId,
+      senderUsername: widget.currentUser.username,
+      participants: sorted,
+      weatherContext: weatherContext,
     );
-
-    await widget.services.api.sendMessage(
-      sender: 'mietek',
-      recipient: sel.username,
-      text: reply,
-      isAI: true,
-    );
-
-    if (mounted) {
-      setState(() {
-        _messages = [..._messages, mietekMsg];
-      });
-    }
   }
 
   String _pad(int v) => v.toString().padLeft(2, '0');

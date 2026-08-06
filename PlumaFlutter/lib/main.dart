@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:cloud_functions/cloud_functions.dart';
 import 'firebase_options.dart';
 
 import 'api/api.dart';
@@ -40,14 +41,18 @@ class PlumaApp extends StatelessWidget {
 class AppServices {
   final PlumaApi api = createApi();
   final WeatherApi weatherApi = WeatherApi();
-  final MietekClient? mietek;
+  MietekClient? mietek;
 
-  AppServices()
-      : mietek = (() {
-          const key = String.fromEnvironment('OPENROUTER_API_KEY_MIETEK');
-          if (key.isNotEmpty) return MietekClient(apiKey: key);
-          return null;
-        })();
+  AppServices();
+
+  static AppServices create() {
+    final services = AppServices()
+      ..mietek = kDebugMode
+          ? MietekClient(FirebaseFunctions.instanceFor(
+              region: 'europe-west1'))
+          : MietekClient(FirebaseFunctions.instance);
+    return services;
+  }
 
   static const Color defaultAccent = PlumaColors.primary;
 }
@@ -61,7 +66,7 @@ class RootScreen extends StatefulWidget {
 }
 
 class _RootScreenState extends State<RootScreen> {
-  final AppServices _services = AppServices();
+  final AppServices _services = AppServices.create();
   late UserProfile _currentUser;
   List<UserProfile> _allUsers = [];
   Color _accentColor = PlumaColors.primary;

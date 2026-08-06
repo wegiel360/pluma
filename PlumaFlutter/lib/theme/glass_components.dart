@@ -251,7 +251,7 @@ class NeonAvatar extends StatelessWidget {
         child: image != null && image!.isNotEmpty && image!.startsWith('data:')
             ? Image.network(image!, fit: BoxFit.cover, errorBuilder: (_, _, _) => _fallback(color))
             : Image.asset(
-                image ?? 'assets/default-pfp.png',
+                image ?? 'assets/defaultpfp2.0.jpg',
                 fit: BoxFit.cover,
                 errorBuilder: (_, _, _) => _fallback(color),
               ),
