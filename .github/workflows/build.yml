@@ -60,7 +60,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev liblzma-dev
       - name: Enable Linux desktop
-        run: flutter config --enable-linux-desktop
+        run: |
+          flutter config --enable-linux-desktop
+          flutter create --platforms=linux .
       - name: Configure Firebase
         run: |
           mkdir -p lib
@@ -133,7 +135,7 @@ jobs:
         run: flutter pub get
       - name: Build Windows (EXE)
         run: |
-          flutter build windows --release --target-platform=windows-x64
+          flutter build windows --release
       - name: Install NSIS + Wine
         run: |
           sudo apt-get update
